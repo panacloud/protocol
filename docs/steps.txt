@@ -1,0 +1,48 @@
+Assignments for Crypto Developers:
+
+We will start from the very basic, and then move to advanced topics in baby steps:
+
+1. Install Metamask (Ethereum Wallet)
+https://metamask.io/ 
+
+2. Select Test network for development in Metamask, we will be using Ropsten
+
+3. Generate Ethereum on a Facet and send it to your Metamask account address:
+https://faucet.ropsten.be/ 
+https://faucet.dimensions.network/
+https://faucet.metamask.io/
+
+4. Generate Dai from a Dai Faucet and send it to your Metamask Account Address:
+https://app.compound.finance/ 
+Watch this video to learn:
+https://youtu.be/5GLh1_zAftk 
+
+5. To show received Dai in Matamask push Add Token button using the following DAI contract address: 
+0xad6d458402f60fd3bd25163575031acdce07538d
+
+6. Send one Dai or more to my address:
+0xA31Fa5D96441645FCeD6F09743cA5703605817Ca
+
+7. Build a web page using which you can send Dai to any address. Host the web page on Netlify.
+
+Note: do not send the code here or share the code or website url with anyone. Just post in this group that you have completed all 7 steps.
+
+
+8a. Build a Fungible Token called APIToken (add your name to the name of the Token like ZiaAPIToken) using ERC-1155 standard. The Token should take one DAI and generate 100 APITokens. Send the smart contract some DAIs to generate APITokens. Once you receive the APIToken send it to me using the Wallet of your choice. 
+
+8b. Build a webpage to send APITokens to any address.
+
+Important Note: Don't share your code with anyone, just send a message here that have completed task 8.
+
+
+9. Now we will build the Revenue Sharing Semi-Fungible Token (RS-SFT) in the smart contract we already developed in step 8. These RS SFTs can be of many types but for now we will have only two types for now: RS-SFT-One and RS-SFT-Two. This means that the token will be semi-fungible token, where the token will be “fungible” and is called APIToken (developed in step 8) until its redeemed when it becomes “non-fungible” and will be called RS-NFT. Think of RS-NFT as a loan or investment in a company. Whatever revenue (DAI) comes in the company the smart contract will distribute 5% to Panacloud (my address), 10% to investors i.e. people who have redeemed APITokens and invested in the RS-NFT (They can be one or more), and the rest to the API developers.
+
+10. We will do a crowd sale of Semi-Fungible Tokens, you will decide if you will accept DAI or Either. Please also give the reasons to why you choose which. You will also document the procedure of doing this sale, select the procedure which you think best suites us.
+
+11. Build a client-side SDK with the following APIs:
+a. Setup a RS-NFT with the fixed investment required in APITokens and the time it will terminate if the fixed investment is not totally financed. 
+b. Redeem APIToken by sending it to the smart contract by different investors. The contract will continue receiving the investment i.e. multiple call to this method until it reaches the limit.
+c. Payment to contract, every time the customer makes a payment for the API Subscription the payment is automatically distributed pro-rata to API Developer, all the investors, and Panacloud.
+
+12. Build a Custom Marketplace for RS-NFTs.
+
