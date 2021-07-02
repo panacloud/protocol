@@ -46,3 +46,5 @@ c. Payment to contract, every time the customer makes a payment for the API Subs
 
 12. Build a Custom Marketplace for RS-NFTs.
 
+13. Create a new ERC standard for RS-NFTs extending ERC-1155
+

@@ -1,0 +1,30 @@
+
+Now we have the blockchain technical leads in place @Shahzain Crypto (Team Captian), @Noor Crypto (First Officer), @Ahmed Crypto (Second Officer)
+The web, api, and cloud team management is @Waris Ninja (Team Captian), @Huma Ninja (First Officer), @Uzair Ninja (Second Officer). 
+All teams will be reporting to @Waris Ninja as he is the Project Manager. He is reporting to @Zeeshan Hanif and @Daniyal Nagori
+
+Core Team:
+
+
+Core Team (so far):
+
+@Shahzain Crypto (Captain)
+@Noor Crypto (First Officer)
+@Ahmed Crypto (Second Officer)
+@Mudasir Crypto (Senior Member)
+@Noman Crypto
+@Waqas Crypto
+@Ali Wisam Crypto
+@Farwa Crypto
+@Asadullah Crypto
+@Zeeshan Crypto
+@Ali Crypto
+@Bushra Crypto
+@Ruwaifa Crypto
+
+
+We will hold our first meeting this Tuesday at 10 pm on Zoom. Who wants to give presentations on the  following topics?
+1. ERC-1155 Standard @Shahzain Crypto @Ahmed Crypto @Zeeshan Crypto @Ali Crypto 
+2. Semi-Fungible Tokens (SFT) @Bushra Crypto 
+3. Mocktail: The First ERC-1155 Standard Semi-Fungible Token @Noor Crypto
+
