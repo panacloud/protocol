@@ -1,1 +1,1 @@
-# pana-crypto
+# API Token
