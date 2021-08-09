@@ -1,41 +1,53 @@
 # Panacloud API Smart Contracts
 
-Panacloud.org will offer 10 million Panacloud Tokens (ERC 20) Tokens through a crowd sale at a specified price i.e. 1 DAI. The maximum API tokens that can be minted will be 1 Billion Panacloud Tokens. This Panacloud Token will give the right to the owner to participate in Panacloud Governance including which APIs project proposals to accept for funding. The Panacloud Token holder will also use these Panacloud Tokens participate in Panacloud DAO and to select the API Projects for funding.
+Panacloud.org will offer 10 million Panacloud Tokens (ERC 20) through a crowd sale at a specified price i.e. 1 DAI. The maximum API tokens that can be minted will be 1 Billion Panacloud Tokens. This Panacloud Token will give the right to the owner to participate in Panacloud Governance including which APIs project proposals to accept for funding. The Panacloud Token holder will also use these Panacloud Tokens participate in Panacloud DAO and to select the API Projects for funding. He/she will also use it to fund API projects.
 
-The life cycle of the API will start when someone proposes an idea to build an API. The person who will create this API Project Proposal will receive a API Project Idea Proposal NFT in his wallet. This API Project Idea Proposal NFT will give him ownership of the idea and also 1% of Revenue sharing rights if the project is built and subscribed.
+The life cycle of the API will start when someone proposes an idea to build an API. The person who will create this API Project Proposal will receive a API Project Idea Proposal NFT in his wallet. This API Project Idea Proposal NFT will give him ownership of the idea and also 1% of Revenue sharing rights when and if the project is built and subscribed.
 
 The API developers will review the API Project Idea Proposal and if interested will submit a bid for development to the Panacloud DAO. The Panacloud DAO members will review the development bids and select a approprite development bid. Each development bid will include the estimated time and the funding required to build the API project. The profile of the developer will also be submitted. Panacloud DAO will select the approprite bid. 
 
-As soon as the Development Bid is selected and approved for development, an API DAO will be created. The first member of the API DAO will be the API Project Idea Proposal NFT holder, he/she will transfer the NFT to the API DAO in exchange for API DAO Tokens. Panacloud DAO will also be given API DAO Tokens.
+As soon as the Development Bid is selected and approved for development, an API DAO will be created. The first member of the API DAO will be the API Project Idea Proposal NFT holder, he/she will transfer the NFT to the API DAO in exchange for API DAO Tokens. If the project requires funding a crowd sales for 5% to 10% of the API DOA tokens will be held to raise the required funding. The investors will make investment by giving the Panacloud token and will receive API DAO Token. Panacloud will also receive 5% API DAO Tokens for maintaing and developing the platform. The rest of the API DAO tokens will be held by the API developer. To sum up, API DAO Tokens will be held by API Idea Proposer (1%), API Project Investors (10%), Panacloud (5%), and API Developers (74%). Every API DAO Token holder will receive revenue share when subscription payments are made through a payment spliter smart contract. The API Subscribers will make payment to the Payment Spliter contract. 
 
-The ownership of each API project will be represented by a API Ownership NFT (ERC 721). The developer of the API will be the owner of the API Ownership NFT (if the API is developed by a team how will we give joint API NFT ownership?) As soon as API developer creates a API project on the Panacloud Portal an API Ownership NFT will be created and transfered to the API Developer Wallet.  
+The ownership of each API project will be represented by a API Ownership NFT. The developer of the API will be the owner of the API Ownership NFT (if the API is developed by a team how will we give joint API NFT ownership?) As soon as API developer creates a API project on the Panacloud Portal an API Ownership NFT will be created and transfered to the API Developer Wallet. Once the APIs funding of the project is started the API Developer will hand this API Owership NFT to the API DOA in exchange for the API DAO Tokens. Therefore, API DAO will keep locked the API Project Idea Proposal NFT and the API Ownership NFT till API is available for subscription.
 
+The smart contracts in the system:
 
-
-
-### ERC 20 Token
+1. Panacloud Token
 
 [OpenZeppelin ERC 20](https://docs.openzeppelin.com/contracts/4.x/api/token/erc20)
 
+2. Panacloud DAO
+[OpenZeppelin Contracts on-chain governance](https://github.com/OpenZeppelin/openzeppelin-contracts/tree/master/contracts/governance)
 
-### ERC 721 Token
+3. API Project Idea Proposal NFT 
 
 [OpenZeppelin ERC 721](https://docs.openzeppelin.com/contracts/4.x/api/token/erc721)
 
+[OpenZeppelin ERC 1155](https://docs.openzeppelin.com/contracts/4.x/api/token/erc1155)
 
-### ERC 1155 Token
+4. API Ownership NFT
+
+[OpenZeppelin ERC 721](https://docs.openzeppelin.com/contracts/4.x/api/token/erc721)
 
 [OpenZeppelin ERC 1155](https://docs.openzeppelin.com/contracts/4.x/api/token/erc1155)
 
-### Finance
+5. API DAO
+[OpenZeppelin Contracts on-chain governance](https://github.com/OpenZeppelin/openzeppelin-contracts/tree/master/contracts/governance)
+
+7. API Token
+
+[OpenZeppelin ERC 20](https://docs.openzeppelin.com/contracts/4.x/api/token/erc20)
+
+8. Payment Splitter
 
 [OpenZeppelin PaymentSplitter](https://docs.openzeppelin.com/contracts/4.x/api/finance)
 
 
 
-### DAO Resources:
 
-[OpenZeppelin Contracts on-chain governance](https://github.com/OpenZeppelin/openzeppelin-contracts/tree/master/contracts/governance)
+
+
+### DAO Resources:
 
 [Example for a full Dao smart contracts](https://forum.openzeppelin.com/t/example-for-a-full-dao-smart-contracts/10462)
 
