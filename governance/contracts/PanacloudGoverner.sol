@@ -1,12 +1,20 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.4.22 <0.9.0;
+import "@openzeppelin/contracts/access/Ownable.sol";
 import "./GovernerCore.sol";
 import "./GovernerEvents.sol";
+import "./PanaFactory.sol";
 
-contract PanacloudGoverner is GovernerCore, GovernerEvents {
+contract PanacloudGoverner is GovernerCore, GovernerEvents, Ownable {
 
     string public constant name = "Panacloud Governor Alpha";
 
+    PanaFactory panaFactory;
+
+    function initialize(address _panaFactory) public onlyOwner {
+        require(address(panaFactory) == address(0), "Panacloud GovernorAlpha::initialize: can only initialize once");
+        panaFactory = PanaFactory(_panaFactory);
+    }
 
     function state(uint proposalId) public view returns (ProposalState) {
         require(proposalCount >= proposalId && proposalId > 0, "Panacloud GovernorAlpha::state: invalid proposal id");
@@ -146,8 +154,9 @@ contract PanacloudGoverner is GovernerCore, GovernerEvents {
         Proposal storage proposal = proposals[proposalId];
         proposal.executed = true;
         
-        // issue NFT
-        // create dao for for API
+        uint256 tokinId = panaFactory.generateAPIIdeaNFT(proposal.proposer);
+        panaFactory.generateAPIDao();
+        // create dao for for API using factory
 
         emit ProposalExecuted(proposalId);
     }
