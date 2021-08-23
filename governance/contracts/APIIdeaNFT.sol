@@ -15,8 +15,9 @@ contract APIIdeaNFT is ERC721, Ownable {
         return "https://www.panacloud.com/";
     }
 
-    function safeMint(address to) public onlyOwner {
-        _safeMint(to, _tokenIdCounter.current());
+    function safeMint(address to) public onlyOwner returns(uint256) {
         _tokenIdCounter.increment();
+        _safeMint(to, _tokenIdCounter.current());
+        return _tokenIdCounter.current();
     }
 }
