@@ -15,7 +15,7 @@ contract PanacloudControler is Ownable  {
         PanacloudGoverner panacloudGoverner = PanacloudGoverner(_panaGoverner);
         PanaFactory panaFactory = PanaFactory(_panaFactory);
         panaFactory.initialize(_panaCoin, _apiIdeaNFT);
-        panacloudGoverner.
+        panacloudGoverner.initialize(_panaFactory);
 
 
     }
