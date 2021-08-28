@@ -33,6 +33,19 @@ contract GovernerCore {
     // uint -- Proposal Id
     //mapping(uint=>mapping(address=>Receipt)) receipts;
 
+    address public admin;
+    address public pendingAdmin;
+
+    // Still unable to find how Compound set admin in its governer
+    constructor() {
+        admin = msg.sender;
+    }
+
+    modifier onlyAdmin() {
+        require(admin == msg.sender, "Panacloud Governor: caller is not the Admin");
+        _;
+    }
+
     struct Proposal {
         // @notice Unique id for looking up a proposal
         uint id;
