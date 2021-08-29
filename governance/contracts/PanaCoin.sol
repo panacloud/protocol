@@ -171,6 +171,8 @@ contract PanaCoin is ERC20 {
       emit DelegateVotesChanged(delegatee, oldVotes, newVotes);
     }
 
+    // Functions related to voting power delegation -- End
+
     function safe32(uint n, string memory errorMessage) internal pure returns (uint32) {
         require(n < 2**32, errorMessage);
         return uint32(n);
@@ -189,6 +191,4 @@ contract PanaCoin is ERC20 {
         assembly { chainId := chainid() }
         return chainId;
     }
-
-    // Functions related to voting power delegation -- End
 }
