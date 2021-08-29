@@ -14,4 +14,7 @@ contract GovernerEvents {
     event VotingDelaySet(uint oldVotingDelay, uint newVotingDelay);
     event VotingPeriodSet(uint oldVotingPeriod, uint newVotingPeriod);
     event ProposalThresholdSet(uint oldProposalThreshold, uint newProposalThreshold);
+
+    event NewPendingAdmin(address oldPendingAdmin, address newPendingAdmin);
+    event NewAdmin(address oldAdmin, address newAdmin);
 }
