@@ -30,17 +30,24 @@ contract PlatformGoverner is GovernerCore, GovernerEvents, Ownable {
     // @notice The max setable voting delay
     uint public constant MAX_VOTING_DELAY = 40320; // About 1 week
 
+    //Still need to explore EIP-712 for 'DOMAIN_TYPEHASH' and 'BALLOT_TYPEHASH'
+    // @notice The EIP-712 typehash for the contract's domain
+    bytes32 public constant DOMAIN_TYPEHASH = keccak256("EIP712Domain(string name,uint256 chainId,address verifyingContract)");
+
+    // @notice The EIP-712 typehash for the ballot struct used by the contract
+    bytes32 public constant BALLOT_TYPEHASH = keccak256("Ballot(uint256 proposalId,uint8 support)");
+
     TimelockInterface timelock;
     PanaCoinInterface panacoin;
 
     // Implement further, add more initialization properties, add upgradation, add timelock?
 
-
     function initialize(address _panaFactory, address _timelock, address _panacoin) public onlyOwner {
         require(address(panaFactory) == address(0), "Panacloud GovernorBravo::initialize: can only initialize once");
         
         require(address(timelock) == address(0), "Panacloud GovernorBravo::initialize: can only initialize once");
-        //require(msg.sender == admin, "GovernorBravo::initialize: admin only");
+        // Not needed at this point as this function should only be called by Owner of contract
+        //require(msg.sender == admin, "Panacloud GovernorBravo::initialize: admin only");
         require(_timelock != address(0), "Panacloud GovernorBravo::initialize: invalid timelock address");
         require(_panacoin != address(0), "Panacloud GovernorBravo::initialize: invalid comp address");
 
@@ -49,6 +56,8 @@ contract PlatformGoverner is GovernerCore, GovernerEvents, Ownable {
         panacoin = PanaCoinInterface(_panacoin);
 
         proposalThreshold = 500e18;
+
+        //timelock.acceptAdmin(); activate
     }
 
     function state(uint proposalId) public view returns (ProposalState) {
@@ -196,6 +205,15 @@ contract PlatformGoverner is GovernerCore, GovernerEvents, Ownable {
         emit VoteCast(msg.sender, proposalId, support, votes, reason);
     }
 
+    function castVoteBySig(uint proposalId, uint8 support, uint8 v, bytes32 r, bytes32 s) external {
+        bytes32 domainSeparator = keccak256(abi.encode(DOMAIN_TYPEHASH, keccak256(bytes(name)), getChainIdInternal(), address(this)));
+        bytes32 structHash = keccak256(abi.encode(BALLOT_TYPEHASH, proposalId, support));
+        bytes32 digest = keccak256(abi.encodePacked("\x19\x01", domainSeparator, structHash));
+        address signatory = ecrecover(digest, v, r, s);
+        require(signatory != address(0), "GovernorBravo::castVoteBySig: invalid signature");
+        emit VoteCast(signatory, proposalId, support, castVoteInternal(signatory, proposalId, support), "");
+    }
+
     function castVoteInternal(address voter, uint proposalId, uint8 support) internal returns (uint256) {
         require(state(proposalId) == ProposalState.Active, "PanacloudGovernorBravo::castVoteInternal: voting is closed");
         require(support <= 2, "PanacloudGovernorBravo::castVoteInternal: invalid vote type");
@@ -218,7 +236,74 @@ contract PlatformGoverner is GovernerCore, GovernerEvents, Ownable {
 
         return votes;
     }
-    /// start from here now
+
+    function setVotingDelay(uint newVotingDelay) external {
+        require(msg.sender == admin, "PanacloudGovernorBravo::setVotingDelay: admin only");
+        require(newVotingDelay >= MIN_VOTING_DELAY && newVotingDelay <= MAX_VOTING_DELAY, "GovernorBravo::_setVotingDelay: invalid voting delay");
+        uint oldVotingDelay = votingDelay;
+        votingDelay = newVotingDelay;
+
+        emit VotingDelaySet(oldVotingDelay,votingDelay);
+    }
+
+    function setVotingPeriod(uint newVotingPeriod) external {
+        require(msg.sender == admin, "PanacloudGovernorBravo::setVotingPeriod: admin only");
+        require(newVotingPeriod >= MIN_VOTING_PERIOD && newVotingPeriod <= MAX_VOTING_PERIOD, "GovernorBravo::_setVotingPeriod: invalid voting period");
+        uint oldVotingPeriod = votingPeriod;
+        votingPeriod = newVotingPeriod;
+
+        emit VotingPeriodSet(oldVotingPeriod, votingPeriod);
+    }
+
+    function setProposalThreshold(uint newProposalThreshold) external {
+        require(msg.sender == admin, "PanacloudGovernorBravo::setProposalThreshold: admin only");
+        require(newProposalThreshold >= MIN_PROPOSAL_THRESHOLD && newProposalThreshold <= MAX_PROPOSAL_THRESHOLD, "GovernorBravo::_setProposalThreshold: invalid proposal threshold");
+        uint oldProposalThreshold = proposalThreshold;
+        proposalThreshold = newProposalThreshold;
+
+        emit ProposalThresholdSet(oldProposalThreshold, proposalThreshold);
+    }
+
+    /**
+      * @notice Begins transfer of admin rights. The newPendingAdmin must call `_acceptAdmin` to finalize the transfer.
+      * @dev Admin function to begin change of admin. The newPendingAdmin must call `_acceptAdmin` to finalize the transfer.
+      * @param newPendingAdmin New pending admin.
+      */
+    function setPendingAdmin(address newPendingAdmin) external {
+        // Check caller = admin
+        require(msg.sender == admin, "PanacloudGovernorBravo::setPendingAdmin: admin only");
+
+        // Save current value, if any, for inclusion in log
+        address oldPendingAdmin = pendingAdmin;
+
+        // Store pendingAdmin with value newPendingAdmin
+        pendingAdmin = newPendingAdmin;
+
+        // Emit NewPendingAdmin(oldPendingAdmin, newPendingAdmin)
+        emit NewPendingAdmin(oldPendingAdmin, newPendingAdmin);
+    }
+
+    /**
+      * @notice Accepts transfer of admin rights. msg.sender must be pendingAdmin
+      * @dev Admin function for pending admin to accept role and update admin
+      */
+    function acceptAdmin() external {
+        // Check caller is pendingAdmin and pendingAdmin ≠ address(0)
+        require(msg.sender == pendingAdmin && msg.sender != address(0), "PanacloudGovernorBravo::acceptAdmin: pending admin only");
+
+        // Save current values for inclusion in log
+        address oldAdmin = admin;
+        address oldPendingAdmin = pendingAdmin;
+
+        // Store admin with value pendingAdmin
+        admin = pendingAdmin;
+
+        // Clear the pending value
+        pendingAdmin = address(0);
+
+        emit NewAdmin(oldAdmin, admin);
+        emit NewPendingAdmin(oldPendingAdmin, pendingAdmin);
+    }
     
 
     function add256(uint256 a, uint256 b) internal pure returns (uint) {
@@ -230,6 +315,12 @@ contract PlatformGoverner is GovernerCore, GovernerEvents, Ownable {
     function sub256(uint256 a, uint256 b) internal pure returns (uint) {
         require(b <= a, "subtraction underflow");
         return a - b;
+    }
+
+    function getChainIdInternal() internal view returns (uint) {
+        uint chainId;
+        assembly { chainId := chainid() }
+        return chainId;
     }
 
 }
