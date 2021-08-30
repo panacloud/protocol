@@ -6,6 +6,7 @@ import "./GovernerEvents.sol";
 import "./PanaFactory.sol";
 import "./GovernerInterfaces.sol";
 
+// Timelock still need to be worked on
 contract PlatformGoverner is GovernerCore, GovernerEvents, Ownable {
 
     string public constant name = "Panacloud Governor Bravo";
@@ -39,8 +40,6 @@ contract PlatformGoverner is GovernerCore, GovernerEvents, Ownable {
 
     TimelockInterface timelock;
     PanaCoinInterface panacoin;
-
-    // Implement further, add more initialization properties, add upgradation, add timelock?
 
     function initialize(address _panaFactory, address _timelock, address _panacoin) public onlyOwner {
         require(address(panaFactory) == address(0), "Panacloud GovernorBravo::initialize: can only initialize once");
