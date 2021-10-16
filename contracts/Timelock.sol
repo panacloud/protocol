@@ -24,6 +24,7 @@ contract Timelock is Ownable {
 
 
     constructor(address admin_, uint delay_) {
+        delay_ = delay_ * 1 days;
         require(delay_ >= MINIMUM_DELAY, "Timelock::constructor: Delay must exceed minimum delay.");
         require(delay_ <= MAXIMUM_DELAY, "Timelock::setDelay: Delay must not exceed maximum delay.");
 
