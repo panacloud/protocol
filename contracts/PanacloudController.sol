@@ -2,7 +2,7 @@
 pragma solidity >=0.4.22 <0.9.0;
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "./PanaCoin.sol";
-import "./APIIdeaNFT.sol";
+import "./APINFT.sol";
 import "./PlatformGoverner.sol";
 import "./PanaFactory.sol";
 import "./Timelock.sol";
