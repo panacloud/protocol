@@ -165,7 +165,7 @@ contract PlatformGoverner is GovernerCore, GovernerEvents, Ownable {
         Proposal storage proposal = proposals[proposalId];
         proposal.executed = true;
         
-        uint256 tokinId = panaFactory.generateAPIIdeaNFT(proposal.proposer);
+        //uint256 tokinId = panaFactory.generateAPIIdeaNFT(proposal.proposer);
 
         // To do
         //timelock.executeTransaction.value(proposal.values[i])(proposal.targets[i], proposal.values[i], proposal.signatures[i], proposal.calldatas[i], proposal.eta);
