@@ -46,18 +46,6 @@ contract PanaFactory is Ownable  {
 
      */
 
-    struct Receipt {
-        // @notice Whether or not a vote has been cast
-        bool hasVoted;
-
-        // @notice Whether or not the voter supports the proposal or abstains
-        uint8 support;
-
-        // @notice The number of votes the voter had, which were cast
-        uint256 votes;
-        
-    }
-
     function generateAPIDao(string[] memory apiDetails, string[] memory daoAndTokenDetails,
         int256 maxApiTokenSupply, int256 initialApiTokenSupply, int8 developerSharePercentage,
         int8 apiInvestorSharePercentage, uint8 votingSupportPercentage, 
