@@ -19,7 +19,7 @@ contract PanaFactory is Ownable  {
         panacloudPlatformAddress = _panacloudPlatform;
     }
 
-    function generateAPIIdeaNFT(address ideaOwnerAddress) public onlyOwner returns(uint256) {
+    function generateAPIIdeaNFT(address ideaOwnerAddress) public returns(uint256) {
         APINFT ideaNFT = APINFT(apiNFTAddress);
         return ideaNFT.safeMint(ideaOwnerAddress);
     }
@@ -48,13 +48,16 @@ contract PanaFactory is Ownable  {
      */
 
     function generateAPIDao(string[] memory apiDetails, string[] memory daoAndTokenDetails,
-        int256 maxApiTokenSupply, int256 initialApiTokenSupply, int256 developerSharePercentage,
-        int256 apiInvestorSharePercentage, uint256 votingSupportPercentage, 
+        uint256 maxApiTokenSupply, uint256 initialApiTokenSupply, uint256 developerSharePercentage,
+        uint256 apiInvestorSharePercentage, uint256 votingSupportPercentage, 
         uint256 votingMinimumApprovalPercentage, uint256 voteDuration, uint256 proposalThresholdPercentage) public {
         
         APIDao apiDao = new APIDao(apiDetails[0],apiDetails[1],apiDetails[2],apiDetails[3],
                             daoAndTokenDetails[0],votingSupportPercentage,votingMinimumApprovalPercentage,
                             voteDuration,proposalThresholdPercentage);
+
+
+        
         PanacloudPlatform platfrom = PanacloudPlatform(panacloudPlatformAddress);
         platfrom.apiDAOCreated(msg.sender, address(apiDao));
     }
