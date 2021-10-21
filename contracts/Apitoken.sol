@@ -48,8 +48,8 @@ contract ApiToken is ERC20{
 
     
     
-    address private DAIAddress; //0xaD6D458402F60fD3Bd25163575031ACDce07538D
-    ERC20 private DAI = ERC20(DAIAddress);
+    address public DAIAddress = address(0xaD6D458402F60fD3Bd25163575031ACDce07538D);
+    ERC20 private DAI =ERC20(DAIAddress);
     
     constructor(
         address[] memory payees,
@@ -62,8 +62,7 @@ contract ApiToken is ERC20{
         uint256 apiInvestorSharePercentage,
         uint256 panaCloudSharePercentage,
         uint256 apiProposerSharePercentage,
-        uint256 threshold,
-        address _DAIaddress) ERC20(name,symbol)  {
+        uint256 threshold) ERC20(name,symbol)  {
         
         require(payees.length == shares_.length, " payees and shares length mismatch");
         require(payees.length > 0, " no payees");
@@ -72,10 +71,10 @@ contract ApiToken is ERC20{
          _apiInvestorSharePercentage = apiInvestorSharePercentage;
          _panaCloudSharePercentage = panaCloudSharePercentage;
          _apiProposerSharePercentage = apiInvestorSharePercentage;
-         DAIAddress=_DAIaddress;
         owner_ = msg.sender;
         _maxSupply = maxSupply;
         _threshold=threshold;
+        
         // for (uint256 i = 0; i < payees.length; i++) {
         //     _addPayee(payees[i], shares_[i]);
         //     _mint(payees[i], shares_[i]);
