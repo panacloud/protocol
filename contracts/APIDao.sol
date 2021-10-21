@@ -5,8 +5,6 @@ import "./GovernerInterfaces.sol";
 
 contract APIDao is Ownable {
 
-    string public name = "APIDao";
-
     // @notice The minimum setable proposal threshold
     uint public constant MIN_PROPOSAL_THRESHOLD = 100e18; // 100 API Token
 
@@ -39,10 +37,10 @@ contract APIDao is Ownable {
     uint public votingPeriod = 17280; // ~3 days in blocks (assuming 15s blocks)
     
     // @notice The number of votes required in order for a voter to become a proposer
-    uint public proposalThreshold = 100e18; // 100 API Token
+    uint public proposalThresholdPercentage = 1; // 1 % of circulating supply of API Token
     
     // @notice The number of votes in support of a proposal required in order for a quorum to be reached and for a vote to succeed
-    uint public quorumVotes = 400000e18; // 400 API Token
+    uint public quorumVotesPercentage = 40; // 40% of total votes casted with API Token
 
     // @notice Initial proposal id set at become
     uint public initialProposalId;
@@ -55,6 +53,12 @@ contract APIDao is Ownable {
 
     // @notice The latest proposal for each proposer
     mapping (address => uint) public latestProposalIds;
+
+    // @notice Minimum Approval is the percentage of the total token supply 
+    // that is required to vote “Yes” on a proposal before it can be approved. For example, if 
+    // the “Minimum Approval” is set to 20%, then more than 20% of the outstanding token supply 
+    // must vote “Yes” on a proposal for it to pass.
+    uint public minimumApprovalPercentage = 10; // 10 % of circulating supply of API Token
 
     address public admin;
     address public pendingAdmin;
@@ -76,10 +80,26 @@ contract APIDao is Ownable {
     event NewPendingAdmin(address oldPendingAdmin, address newPendingAdmin);
     event NewAdmin(address oldAdmin, address newAdmin);
 
+    string public apiProposalId;
+    string public apiID;
+    string public apiTitle;
+    string public apiType;
+    string public name = "APIDao";
 
-    // Still unable to find how Compound set admin in its governer
-    constructor() {
+    constructor(string memory _apiProposalId, string memory _apiID, string memory _apiTitle, 
+                string memory _apiType, string memory _daoName, uint256 _quorumVotesPercentage, 
+                uint256 _minimumApprovalPercentage, uint256 voteDuration, uint256 _proposalThresholdPercentage) {
         admin = msg.sender;
+        apiProposalId = _apiProposalId;
+        apiID = _apiID;
+        apiTitle = _apiTitle;
+        apiType = _apiType;
+        name = _daoName;
+        quorumVotesPercentage = _quorumVotesPercentage;
+        minimumApprovalPercentage = _minimumApprovalPercentage;
+        votingPeriod = voteDuration;
+        proposalThresholdPercentage = _proposalThresholdPercentage;
+        
     }
 
     modifier onlyAdmin() {
@@ -170,7 +190,7 @@ contract APIDao is Ownable {
             return ProposalState.Pending;
         } else if (block.number <= proposal.endBlock) {
             return ProposalState.Active;
-        } else if (proposal.forVotes <= proposal.againstVotes || proposal.forVotes < this.quorumVotes()) {
+        } else if (proposal.forVotes <= proposal.againstVotes || proposal.forVotes < this.quorumVotesPercentage()) {
             return ProposalState.Defeated;
         } else if (proposal.eta == 0) {
             return ProposalState.Succeeded;
@@ -250,13 +270,13 @@ contract APIDao is Ownable {
         emit VotingPeriodSet(oldVotingPeriod, votingPeriod);
     }
 
-    function setProposalThreshold(uint newProposalThreshold) external {
+    function setProposalThreshold(uint newProposalThresholdPercentage) external {
         require(msg.sender == admin, "Panacloud API GovernorBravo::setProposalThreshold: admin only");
-        require(newProposalThreshold >= MIN_PROPOSAL_THRESHOLD && newProposalThreshold <= MAX_PROPOSAL_THRESHOLD, "API GovernorBravo::_setProposalThreshold: invalid proposal threshold");
-        uint oldProposalThreshold = proposalThreshold;
-        proposalThreshold = newProposalThreshold;
+        require(newProposalThresholdPercentage >= MIN_PROPOSAL_THRESHOLD && newProposalThresholdPercentage <= MAX_PROPOSAL_THRESHOLD, "API GovernorBravo::_setProposalThreshold: invalid proposal threshold");
+        uint oldProposalThresholdPercentage = proposalThresholdPercentage;
+        proposalThresholdPercentage = newProposalThresholdPercentage;
 
-        emit ProposalThresholdSet(oldProposalThreshold, proposalThreshold);
+        emit ProposalThresholdSet(oldProposalThresholdPercentage, proposalThresholdPercentage);
     }
 
     /**
