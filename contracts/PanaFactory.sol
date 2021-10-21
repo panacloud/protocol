@@ -2,6 +2,8 @@
 pragma solidity >=0.4.22 <0.9.0;
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "./APINFT.sol";
+import "./APIDao.sol";
+import "./PanacloudPlatform.sol";
 
 // Need to decide if we really need a factory or not
 // creating a smart contract for factory will cost us
@@ -31,7 +33,6 @@ contract PanaFactory is Ownable  {
     // the “Minimum Approval” is set to 20%, then more than 20% of the outstanding token supply 
     // must vote “Yes” on a proposal for it to pass.
     
-    
     /**
         apiDetails Array 
         Index 0 - API PorposalId
@@ -47,10 +48,15 @@ contract PanaFactory is Ownable  {
      */
 
     function generateAPIDao(string[] memory apiDetails, string[] memory daoAndTokenDetails,
-        int256 maxApiTokenSupply, int256 initialApiTokenSupply, int8 developerSharePercentage,
-        int8 apiInvestorSharePercentage, uint8 votingSupportPercentage, 
-        uint8 votingMinimumApprovalPercentage, uint256 voteDuration) public {
-
+        int256 maxApiTokenSupply, int256 initialApiTokenSupply, int256 developerSharePercentage,
+        int256 apiInvestorSharePercentage, uint256 votingSupportPercentage, 
+        uint256 votingMinimumApprovalPercentage, uint256 voteDuration, uint256 proposalThresholdPercentage) public {
+        
+        APIDao apiDao = new APIDao(apiDetails[0],apiDetails[1],apiDetails[2],apiDetails[3],
+                            daoAndTokenDetails[0],votingSupportPercentage,votingMinimumApprovalPercentage,
+                            voteDuration,proposalThresholdPercentage);
+        PanacloudPlatform platfrom = PanacloudPlatform(panacloudPlatformAddress);
+        platfrom.apiDAOCreated(msg.sender, address(apiDao));
     }
 
     /*
