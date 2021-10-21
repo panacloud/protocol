@@ -8,6 +8,16 @@ contract PanacloudPlatform is Ownable {
     uint256 public panacloudAPIShare = 5;
     uint256 public apiIdeaProposerShare = 1;
 
+    // Developers address with number of DAOs created by this user
+    mapping(address => uint256) apiDAOCounts;
+    // Key DAO address value Developer address
+    mapping(address => address) apiDAOToUserMapping;
+
+    // Mapping for developer to list of owned DAOs
+    // key:develper address, value:mapping (key: index, value: dao dddress)
+    mapping(address => address[]) ownedDAOs; 
+
+
     constructor() {
         console.log("Platform Launched");
     }
@@ -22,6 +32,12 @@ contract PanacloudPlatform is Ownable {
         require(newShare > 0, "Idea Proposer Share must be greater than 0");
         require(newShare <= 10, "Idea Proposer Share cannot be greater than 10");
         apiIdeaProposerShare = newShare;
+    }
+
+    function apiDAOCreated(address owner, address dao) public {
+        apiDAOCounts[owner]++;
+        apiDAOToUserMapping[dao] = owner;
+        ownedDAOs[owner].push(dao);
     }
 
 }
