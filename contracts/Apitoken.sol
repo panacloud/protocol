@@ -4,6 +4,8 @@ pragma solidity >=0.4.22 <0.9.0;
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 import "@openzeppelin/contracts/utils/Context.sol";
+import "./DAIcoin.sol";
+
 
 
 contract ApiToken is ERC20{
@@ -46,8 +48,8 @@ contract ApiToken is ERC20{
         require(payees.length > 0, " no payees");
         owner_ = msg.sender;
         for (uint256 i = 0; i < payees.length; i++) {
-            _addPayee(payees[i], shares_[i]*10**decimals());
-            _mint(payees[i], shares_[i]*10**decimals());
+            _addPayee(payees[i], shares_[i]);
+            _mint(payees[i], shares_[i]);
         }
     }
     
@@ -201,14 +203,14 @@ contract ApiToken is ERC20{
 
     
     function transfer(address recipient, uint256 amount) public override returns (bool) {
-        if(isContract(recipient) && !isContract(_msgSender()))
+       if(isContract(recipient) && !isContract(_msgSender()))
         {
         _unclaimedPayment[_msgSender()]=unclaimedPayment(_msgSender());
         _pointOne[_msgSender()]=_totalRevenue;
         _shares[_msgSender()]=_shares[_msgSender()]-amount;
-        
+
         _totalShares = _totalShares - amount;
-        
+
         _transfer(_msgSender(), recipient, amount);
         return true;
         }
@@ -228,17 +230,16 @@ contract ApiToken is ERC20{
         _unclaimedPayment[_msgSender()]=unclaimedPayment(_msgSender());
         _pointOne[_msgSender()]=_totalRevenue;
         _shares[_msgSender()]=_shares[_msgSender()]-amount;
-        
+
         _unclaimedPayment[recipient]=unclaimedPayment(recipient);
         _pointOne[recipient]=_totalRevenue;
         _shares[recipient]=_shares[recipient]+amount;
-       
+
         _transfer(_msgSender(), recipient, amount);
-        
-        
+
+
         return true;
         }
-        
     }
     
     function transferFrom(

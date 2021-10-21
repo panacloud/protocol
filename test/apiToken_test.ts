@@ -13,29 +13,31 @@ describe("ApiToken", function () {
     it("Should return the total coins = owners coins", async function () {
 
         const [owner, addr1]: SignerWithAddress[] = await ethers.getSigners();
-        const addresses: string[] = [owner.toString(), addr1.toString()]
+        //   const addresses: string[] = [owner.toString(), addr1.toString()]
 
         const shares = [1000, 0]
 
         const ApiToken: ApiToken__factory = await ethers.getContractFactory("ApiToken");
-        const apiToken: ApiToken = await ApiToken.deploy(addresses, shares);
+        const apiToken: ApiToken = await ApiToken.deploy([owner.address], [1000]);
         await apiToken.deployed();
 
-        expect(await apiToken.totalSupply()).to.equal(ethers.utils.parseEther('1020'));
+        expect(await apiToken.totalSupply()).to.equal(1000);
+
+        expect(await apiToken.balanceOf(await owner.getAddress())).to.equal(1000);
         console.log(await (await apiToken.balanceOf(await owner.getAddress())).toNumber())
 
-        //  expect(await apiToken.balanceOf(await owner.getAddress())).to.equal(ethers.utils.parseEther('1000'));
+        expect(await apiToken.balanceOf(await owner.getAddress())).to.equal(1000);
 
     });
 
     it("Should transfer coins correctly", async function () {
         const [owner, addr1] = await ethers.getSigners();
-        const addresses: string[] = [owner.toString(), addr1.toString()]
+
 
         const shares = [1000, 0]
 
         const ApiToken = await ethers.getContractFactory("ApiToken");
-        const apiToken = await ApiToken.deploy(addresses, shares);
+        const apiToken: ApiToken = await ApiToken.deploy([owner.address], [1000]);
         await apiToken.deployed();
 
         await apiToken.transfer(await addr1.getAddress(), 10);
@@ -79,14 +81,14 @@ describe("Token contract", function () {
         // Get the ContractFactory and Signers here.
         Token = await ethers.getContractFactory("ApiToken");
         [owner, addr1, addr2, ...addrs] = await ethers.getSigners();
-        const addresses: string[] = [owner.toString(), addr1.toString()]
+        //  const addresses: string[] = [owner.toString(), addr1.toString()]
 
         const shares = [1000, 0]
 
         // To deploy our contract, we just have to call Token.deploy() and await
         // for it to be deployed(), which happens once its transaction has been
         // mined.
-        hardhatToken = await Token.deploy(addresses, shares);
+        hardhatToken = await Token.deploy([owner.address], [10000]);
     });
 
     // You can nest describe calls to create subsections.
