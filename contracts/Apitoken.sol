@@ -6,6 +6,8 @@ import "@openzeppelin/contracts/utils/Address.sol";
 import "@openzeppelin/contracts/utils/Context.sol";
 
 
+
+
 contract ApiToken is ERC20{
     
     event PayeeAdded(address account, uint256 shares);
@@ -15,8 +17,15 @@ contract ApiToken is ERC20{
     uint256 private _totalShares;
     uint256 private _totalReleased;
     uint256 private _totalRevenue;
-    uint256 private _threshold=500;
-    uint256 private _totalSupply=1*10**27;
+    uint256 private _threshold;
+    uint256 public _maxSupply;
+    uint256 public _initialSupply;
+    uint256 public _developerSharePercentage;
+    uint256 public _apiInvestorSharePercentage;
+    uint256 public _panaCloudSharePercentage;
+    uint256 public _apiProposerSharePercentage;
+
+
 
     mapping(address => uint256) private _pointOne;
     mapping(address => uint256) private _userInvestment;
@@ -27,7 +36,7 @@ contract ApiToken is ERC20{
     
     address[] private _payees;
     address[] private _unclaimedPayees;
-    address private owner_; 
+    address private owner_;
 
     
     struct assignShares{
@@ -36,19 +45,41 @@ contract ApiToken is ERC20{
     }
     
     assignShares[] private _assignShares;
+
     
-    address private DAIAddress = address(0xaD6D458402F60fD3Bd25163575031ACDce07538D);
+    
+    address private DAIAddress; //0xaD6D458402F60fD3Bd25163575031ACDce07538D
     ERC20 private DAI = ERC20(DAIAddress);
     
-    constructor(address[] memory payees, uint256[] memory shares_) ERC20("APIToken","APT")  {
+    constructor(
+        address[] memory payees,
+        uint256[] memory shares_,
+        string memory name,
+        string memory symbol,
+        uint256 maxSupply,
+        uint256 initialSupply,
+        uint256 developerSharePercentage,
+        uint256 apiInvestorSharePercentage,
+        uint256 panaCloudSharePercentage,
+        uint256 apiProposerSharePercentage,
+        uint256 threshold,
+        address _DAIaddress) ERC20(name,symbol)  {
         
         require(payees.length == shares_.length, " payees and shares length mismatch");
         require(payees.length > 0, " no payees");
+         _initialSupply = initialSupply;
+         _developerSharePercentage = developerSharePercentage;
+         _apiInvestorSharePercentage = apiInvestorSharePercentage;
+         _panaCloudSharePercentage = panaCloudSharePercentage;
+         _apiProposerSharePercentage = apiInvestorSharePercentage;
+         DAIAddress=_DAIaddress;
         owner_ = msg.sender;
-        for (uint256 i = 0; i < payees.length; i++) {
-            _addPayee(payees[i], shares_[i]*10**decimals());
-            _mint(payees[i], shares_[i]*10**decimals());
-        }
+        _maxSupply = maxSupply;
+        _threshold=threshold;
+        // for (uint256 i = 0; i < payees.length; i++) {
+        //     _addPayee(payees[i], shares_[i]);
+        //     _mint(payees[i], shares_[i]);
+        // }
     }
     
     
@@ -140,15 +171,6 @@ contract ApiToken is ERC20{
         payment = payment + _unclaimedPayment[account];    
         }
     }
-    
-    
-
-        
-    
-    
-    
-    
-    
     function sendValue(address recipient, uint256 amount) internal {
         require(DAI.balanceOf(address(this)) >= amount, "Address: insufficient balance");
 
@@ -201,14 +223,14 @@ contract ApiToken is ERC20{
 
     
     function transfer(address recipient, uint256 amount) public override returns (bool) {
-        if(isContract(recipient) && !isContract(_msgSender()))
+       if(isContract(recipient) && !isContract(_msgSender()))
         {
         _unclaimedPayment[_msgSender()]=unclaimedPayment(_msgSender());
         _pointOne[_msgSender()]=_totalRevenue;
         _shares[_msgSender()]=_shares[_msgSender()]-amount;
-        
+
         _totalShares = _totalShares - amount;
-        
+
         _transfer(_msgSender(), recipient, amount);
         return true;
         }
@@ -228,18 +250,17 @@ contract ApiToken is ERC20{
         _unclaimedPayment[_msgSender()]=unclaimedPayment(_msgSender());
         _pointOne[_msgSender()]=_totalRevenue;
         _shares[_msgSender()]=_shares[_msgSender()]-amount;
-        
+
         _unclaimedPayment[recipient]=unclaimedPayment(recipient);
         _pointOne[recipient]=_totalRevenue;
         _shares[recipient]=_shares[recipient]+amount;
-       
+
         _transfer(_msgSender(), recipient, amount);
-        
-        
+
+
         return true;
         }
-        
-    }
+        }
     
     function transferFrom(
         address sender,
@@ -304,7 +325,7 @@ contract ApiToken is ERC20{
 
     
     function mint(address account, uint256 amount) private {
-        require(amount+totalSupply()>_totalSupply," total supply reached");
+        require(amount+totalSupply()>_maxSupply," total supply reached");
         _mint(account,amount);
     }
     function isContract(address account) internal view returns (bool) {
