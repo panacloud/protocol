@@ -20,7 +20,7 @@ contract PanaFactory is Ownable  {
         panacloudPlatformAddress = _panacloudPlatform;
     }
 
-    function generateAPIIdeaNFT(address ideaOwnerAddress) public onlyOwner returns(uint256) {
+    function generateAPIIdeaNFT(address ideaOwnerAddress) public returns(uint256) {
         APINFT ideaNFT = APINFT(apiNFTAddress);
         return ideaNFT.safeMint(ideaOwnerAddress);
     }
@@ -77,7 +77,6 @@ contract PanaFactory is Ownable  {
         APIDao apiDao = new APIDao(apiDetails[0],apiDetails[1],apiDetails[2],apiDetails[3],
                             daoAndTokenDetails[0],votingSupportPercentage,votingMinimumApprovalPercentage,
                             voteDuration,proposalThresholdPercentage);
-               
         platfrom.apiDAOCreated(msg.sender, address(apiDao));
         
     }
