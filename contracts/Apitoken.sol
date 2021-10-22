@@ -52,8 +52,7 @@ contract ApiToken is ERC20{
     ERC20 private DAI =ERC20(DAIAddress);
     
     constructor(
-        address[] memory payees,
-        uint256[] memory shares_,
+        
         string memory name,
         string memory symbol,
         uint256 maxSupply,
@@ -64,8 +63,8 @@ contract ApiToken is ERC20{
         uint256 apiProposerSharePercentage,
         uint256 threshold) ERC20(name,symbol)  {
         
-        require(payees.length == shares_.length, " payees and shares length mismatch");
-        require(payees.length > 0, " no payees");
+        // require(payees.length == shares_.length, " payees and shares length mismatch");
+        // require(payees.length > 0, " no payees");
          _initialSupply = initialSupply;
          _developerSharePercentage = developerSharePercentage;
          _apiInvestorSharePercentage = apiInvestorSharePercentage;
