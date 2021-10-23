@@ -22,6 +22,12 @@ task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
  */
 export default {
   solidity: "0.8.4",
+  settings: {
+    optimizer: {
+      enabled: true,
+      runs: 10,
+    },
+  },
   contractSizer: {
     alphaSort: true,
     disambiguatePaths: false,
