@@ -69,7 +69,7 @@ contract ApiToken is ERC20{
          _developerSharePercentage = developerSharePercentage;
          _apiInvestorSharePercentage = apiInvestorSharePercentage;
          _panaCloudSharePercentage = panaCloudSharePercentage;
-         _apiProposerSharePercentage = apiInvestorSharePercentage;
+         _apiProposerSharePercentage = apiProposerSharePercentage;
         owner_ = msg.sender;
         _maxSupply = maxSupply;
         _threshold=threshold;

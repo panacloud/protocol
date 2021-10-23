@@ -2,9 +2,9 @@
 pragma solidity >=0.4.22 <0.9.0;
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "./APINFT.sol";
-import "./APIDao.sol";
 import "./PanacloudPlatform.sol";
-import "./ApiToken.sol";
+import "./factories/DaoFactory.sol";
+import "./factories/APITokenFactory.sol";
 
 // Need to decide if we really need a factory or not
 // creating a smart contract for factory will cost us
@@ -45,42 +45,42 @@ contract PanaFactory is Ownable  {
         Index 0 - API DAO Name
         Index 1 - API Token Name
         Index 2 - API Token Symbol
-
-
-         constructor(
-        address[] memory payees,
-        uint256[] memory shares_,
-        string memory name,
-        string memory symbol,
-        uint256 maxSupply,
-        uint256 initialSupply,
-        uint256 developerSharePercentage,
-        uint256 apiInvestorSharePercentage,
-        uint256 panaCloudSharePercentage,
-        uint256 apiProposerSharePercentage,
-        uint256 threshold) ERC20(name,symbol)
-
-     */
-     
-
+     */   
     function generateAPIDao(string[] memory apiDetails, string[] memory daoAndTokenDetails,
         uint256 maxApiTokenSupply, uint256 initialApiTokenSupply, uint256 developerSharePercentage,
         uint256 apiInvestorSharePercentage, uint256 votingSupportPercentage, 
-        uint256 votingMinimumApprovalPercentage, uint256 voteDuration, uint256 proposalThresholdPercentage,uint256 _threshold) public {
+        uint256 votingMinimumApprovalPercentage, uint256 voteDuration, uint256 _thresholdForSubscriberMinting) public {
+        
+        address apiTokenAddress = APITokenFactory.generateAPIToken(daoAndTokenDetails, maxApiTokenSupply, initialApiTokenSupply, developerSharePercentage, apiInvestorSharePercentage, _thresholdForSubscriberMinting);
+        address apiDaoAddress = DaoFactory.generateAPIDao(apiDetails, daoAndTokenDetails, votingSupportPercentage, votingMinimumApprovalPercentage, voteDuration, address(apiTokenAddress));
+        
+        PanacloudPlatform platfrom = PanacloudPlatform(panacloudPlatformAddress);
+        
+        platfrom.apiDAOCreated(msg.sender, address(apiDaoAddress), address(apiTokenAddress));
+        
+    }
+    /*
+    function generateAPIToken(string[] memory apiDetails, string[] memory daoAndTokenDetails,
+        uint256 maxApiTokenSupply, uint256 initialApiTokenSupply, uint256 developerSharePercentage,
+        uint256 apiInvestorSharePercentage, uint256 votingSupportPercentage, 
+        uint256 votingMinimumApprovalPercentage, uint256 voteDuration, uint256 _thresholdForSubscriberMinting) public {
+        
         
         PanacloudPlatform platfrom = PanacloudPlatform(panacloudPlatformAddress);
         
         ApiToken apiToken = new ApiToken(daoAndTokenDetails[1],daoAndTokenDetails[2],maxApiTokenSupply,
                             initialApiTokenSupply,developerSharePercentage,apiInvestorSharePercentage,
-                            platfrom.panacloudAPIShare(),platfrom.apiIdeaProposerShare(),_threshold);
-
+                            platfrom.panacloudAPIShare(),platfrom.apiIdeaProposerShare(),_thresholdForSubscriberMinting);
+        
+        
         APIDao apiDao = new APIDao(apiDetails[0],apiDetails[1],apiDetails[2],apiDetails[3],
                             daoAndTokenDetails[0],votingSupportPercentage,votingMinimumApprovalPercentage,
-                            voteDuration,proposalThresholdPercentage);
-        platfrom.apiDAOCreated(msg.sender, address(apiDao));
+                            voteDuration, address(0));
+        
+        platfrom.apiDAOCreated(msg.sender, address(apiDao), address(0));
         
     }
-
+    */
     /*
     function generateAPIDao(string memory apiProposalId, string memory apiID, 
             string memory apiTitle, string memory apiType, string memory apiDaoName,

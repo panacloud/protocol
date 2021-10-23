@@ -8,14 +8,16 @@ contract PanacloudPlatform is Ownable {
     uint256 public panacloudAPIShare = 5;
     uint256 public apiIdeaProposerShare = 1;
 
-    // Developers address with number of DAOs created by this user
-    mapping(address => uint256) apiDAOCounts;
     // Key DAO address value Developer address
-    mapping(address => address) apiDAOToUserMapping;
+    mapping(address => address) private apiDAOToUserMapping;
 
     // Mapping for developer to list of owned DAOs
-    // key:develper address, value:mapping (key: index, value: dao dddress)
-    mapping(address => address[]) ownedDAOs; 
+    // key:develper address, value: Dao Address array
+    mapping(address => address[]) private ownedDAOs;
+
+    // Mapping for developer to list of owned Tokens
+    // key:develper address, value: Dao Address array
+    mapping(address => address[]) private ownedTokens;
 
 
     constructor() {
@@ -34,10 +36,10 @@ contract PanacloudPlatform is Ownable {
         apiIdeaProposerShare = newShare;
     }
 
-    function apiDAOCreated(address owner, address dao) public {
-        apiDAOCounts[owner]++;
-        apiDAOToUserMapping[dao] = owner;
-        ownedDAOs[owner].push(dao);
+    function apiDAOCreated(address owner, address apiDao, address apiToken) public {
+        apiDAOToUserMapping[apiDao] = owner;
+        ownedDAOs[owner].push(apiDao);
+        ownedTokens[owner].push(apiToken);
     }
 
 }

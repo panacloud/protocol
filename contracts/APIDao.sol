@@ -85,10 +85,11 @@ contract APIDao is Ownable {
     string public apiTitle;
     string public apiType;
     string public name = "APIDao";
+    address public apiTokenAddress;
 
     constructor(string memory _apiProposalId, string memory _apiID, string memory _apiTitle, 
                 string memory _apiType, string memory _daoName, uint256 _quorumVotesPercentage, 
-                uint256 _minimumApprovalPercentage, uint256 voteDuration, uint256 _proposalThresholdPercentage) {
+                uint256 _minimumApprovalPercentage, uint256 voteDuration, address _apiTokenAddress) {
         admin = msg.sender;
         apiProposalId = _apiProposalId;
         apiID = _apiID;
@@ -98,8 +99,8 @@ contract APIDao is Ownable {
         quorumVotesPercentage = _quorumVotesPercentage;
         minimumApprovalPercentage = _minimumApprovalPercentage;
         votingPeriod = voteDuration;
-        proposalThresholdPercentage = _proposalThresholdPercentage;
-        
+        apiTokenAddress = _apiTokenAddress;
+
     }
 
     modifier onlyAdmin() {
