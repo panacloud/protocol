@@ -27,5 +27,11 @@ export default {
     disambiguatePaths: false,
     runOnCompile: true,
     strict: true,
+  },
+  settings: {
+    optimizer: {
+      enabled: true,
+      runs: 20
+    }
   }
 };

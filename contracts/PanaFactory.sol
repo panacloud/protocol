@@ -49,9 +49,10 @@ contract PanaFactory is Ownable  {
     function generateAPIDao(string[] memory apiDetails, string[] memory daoAndTokenDetails,
         uint256 maxApiTokenSupply, uint256 initialApiTokenSupply, uint256 developerSharePercentage,
         uint256 apiInvestorSharePercentage, uint256 votingSupportPercentage, 
-        uint256 votingMinimumApprovalPercentage, uint256 voteDuration, uint256 _thresholdForSubscriberMinting) public {
+        uint256 votingMinimumApprovalPercentage, uint256 voteDuration, uint256 _thresholdForSubscriberMinting,
+        address _paymentSplitterAddress) public {
         
-        address apiTokenAddress = APITokenFactory.generateAPIToken(daoAndTokenDetails, maxApiTokenSupply, initialApiTokenSupply, developerSharePercentage, apiInvestorSharePercentage, _thresholdForSubscriberMinting);
+        address apiTokenAddress = APITokenFactory.generateAPIToken(daoAndTokenDetails, maxApiTokenSupply, initialApiTokenSupply, developerSharePercentage, apiInvestorSharePercentage, _thresholdForSubscriberMinting,_paymentSplitterAddress);
         address apiDaoAddress = DaoFactory.generateAPIDao(apiDetails, daoAndTokenDetails, votingSupportPercentage, votingMinimumApprovalPercentage, voteDuration, address(apiTokenAddress));
         
         PanacloudPlatform platfrom = PanacloudPlatform(panacloudPlatformAddress);
