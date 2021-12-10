@@ -1,7 +1,7 @@
 import { ethers, waffle } from "hardhat";
 import { expect } from "chai";
 import { Address } from "cluster";
-import { ApiToken, ApiToken__factory } from "../typechain";
+import { APIToken, APIToken__factory } from "../typechain";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { BigNumber } from "@ethersproject/bignumber";
 
@@ -9,7 +9,7 @@ import { BigNumber } from "@ethersproject/bignumber";
 
 
 
-describe("ApiToken", function () {
+describe("APIToken", function () {
     it("Should return the total coins = owners coins", async function () {
 
         const [owner, addr1]: SignerWithAddress[] = await ethers.getSigners();
@@ -17,8 +17,8 @@ describe("ApiToken", function () {
 
         const shares = [1000, 0]
 
-        const ApiToken: ApiToken__factory = await ethers.getContractFactory("ApiToken");
-        const apiToken: ApiToken = await ApiToken.deploy(addresses, shares);
+        const APIToken: APIToken__factory = await ethers.getContractFactory("APIToken");
+        const apiToken: APIToken = await APIToken.deploy(addresses, shares);
         await apiToken.deployed();
 
         expect(await apiToken.totalSupply()).to.equal(ethers.utils.parseEther('1020'));
@@ -34,8 +34,8 @@ describe("ApiToken", function () {
 
         const shares = [1000, 0]
 
-        const ApiToken = await ethers.getContractFactory("ApiToken");
-        const apiToken = await ApiToken.deploy(addresses, shares);
+        const APIToken = await ethers.getContractFactory("APIToken");
+        const apiToken = await APIToken.deploy(addresses, shares);
         await apiToken.deployed();
 
         await apiToken.transfer(await addr1.getAddress(), 10);
@@ -66,8 +66,8 @@ describe("Token contract", function () {
     // A common pattern is to declare some variables, and assign them in the
     // `before` and `beforeEach` callbacks.
 
-    let Token: ApiToken__factory;
-    let hardhatToken: ApiToken;
+    let Token: APIToken__factory;
+    let hardhatToken: APIToken;
     let owner: SignerWithAddress;
     let addr1: SignerWithAddress;
     let addr2: SignerWithAddress;
@@ -77,7 +77,7 @@ describe("Token contract", function () {
     // time. It receives a callback, which can be async.
     beforeEach(async function () {
         // Get the ContractFactory and Signers here.
-        Token = await ethers.getContractFactory("ApiToken");
+        Token = await ethers.getContractFactory("APIToken");
         [owner, addr1, addr2, ...addrs] = await ethers.getSigners();
         const addresses: string[] = [owner.toString(), addr1.toString()]
 

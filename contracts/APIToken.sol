@@ -6,7 +6,7 @@ import "@openzeppelin/contracts/utils/Address.sol";
 import "./PaymentSplitter.sol";
 
 
-contract ApiToken is ERC20{
+contract APIToken is ERC20{
     
     
     event PayeeAdded(address account, uint256 shares);
