@@ -3,54 +3,57 @@ pragma solidity >=0.4.22 <0.9.0;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
-import "@openzeppelin/contracts/utils/Context.sol";
+import "./PaymentSplitter.sol";
 
 
 
 
 contract ApiToken is ERC20{
     
+    
     event PayeeAdded(address account, uint256 shares);
     event PaymentReleased(address to, uint256 amount);
     event PaymentReceived(address from, uint256 amount);
+    event DelegateChanged(address indexed delegator, address indexed fromDelegate, address indexed toDelegate);
+    event DelegateVotesChanged(address indexed delegate, uint previousBalance, uint newBalance);
 
-    uint256 private _totalShares;
-    uint256 private _totalReleased;
-    uint256 private _totalRevenue;
-    uint256 private _threshold;
-    uint256 public _maxSupply;
+//variable defining
+   
+    address private _paymentSplitterAddress;
+    uint256 public _threshold;
     uint256 public _initialSupply;
+    uint256 public _maxSupply;
     uint256 public _developerSharePercentage;
     uint256 public _apiInvestorSharePercentage;
     uint256 public _panaCloudSharePercentage;
     uint256 public _apiProposerSharePercentage;
-
-
-
-    mapping(address => uint256) private _pointOne;
-    mapping(address => uint256) private _userInvestment;
-    mapping(address => uint256) private _shares;
-    mapping(address => uint256) private _released;
-    mapping(address => uint256) private _unclaimedPayment;
-    mapping(address => uint256) private _unclaimedShares;
-    
-    address[] private _payees;
-    address[] private _unclaimedPayees;
-    address private owner_;
+    address private owner;
+    address private DAIAddress = address(0xaD6D458402F60fD3Bd25163575031ACDce07538D);
 
     
-    struct assignShares{
-        address _payee;
-        uint256 _share;
-    }
-    
-    assignShares[] private _assignShares;
-
-    
-    
-    address public DAIAddress = address(0xaD6D458402F60fD3Bd25163575031ACDce07538D);
+    PaymentSplitter private paymentSplitter;
     ERC20 private DAI =ERC20(DAIAddress);
     
+    mapping(address => uint) private nonces;
+    mapping(address => mapping (uint32 => Checkpoint)) private checkpoints;
+    mapping(address => uint32) private numCheckpoints;
+    mapping(address => address) public delegates;
+
+   // The EIP-712 typehash for the contract's domain
+    bytes32 public constant DOMAIN_TYPEHASH = keccak256("EIP712Domain(string name,uint256 chainId,address verifyingContract)");
+
+    // The EIP-712 typehash for the delegation struct used by the contract
+    bytes32 public constant DELEGATION_TYPEHASH = keccak256("Delegation(address delegatee,uint256 nonce,uint256 expiry)");
+
+
+
+    
+    struct Checkpoint {
+        uint32 fromBlock;
+        uint256 votes;
+    }
+
+
     constructor(
         
         string memory name,
@@ -61,7 +64,8 @@ contract ApiToken is ERC20{
         uint256 apiInvestorSharePercentage,
         uint256 panaCloudSharePercentage,
         uint256 apiProposerSharePercentage,
-        uint256 threshold) ERC20(name,symbol)  {
+        uint256 threshold,
+        address paymentSplitterAddress) ERC20(name,symbol)  {
         
         // require(payees.length == shares_.length, " payees and shares length mismatch");
         // require(payees.length > 0, " no payees");
@@ -70,274 +74,185 @@ contract ApiToken is ERC20{
          _apiInvestorSharePercentage = apiInvestorSharePercentage;
          _panaCloudSharePercentage = panaCloudSharePercentage;
          _apiProposerSharePercentage = apiProposerSharePercentage;
-        owner_ = msg.sender;
+         _paymentSplitterAddress = paymentSplitterAddress;
+         paymentSplitter = PaymentSplitter(paymentSplitterAddress);
+    
         _maxSupply = maxSupply;
         _threshold=threshold;
+          owner = msg.sender;
         
         // for (uint256 i = 0; i < payees.length; i++) {
         //     _addPayee(payees[i], shares_[i]);
         //     _mint(payees[i], shares_[i]);
         // }
     }
+
     
-    
-    receive() external payable virtual {
-        emit PaymentReceived(_msgSender(), msg.value);
+
+   function mint(address account, uint256 amount) public  {
+        require(amount+totalSupply()>_maxSupply,"total supply reached");
+        _mint(account,amount);
     }
 
-    function owner() public view returns (address){
-        return owner_;
-    }
-    
-    function contractRevenue() public view returns(uint256){
-        return DAI.balanceOf(address(this));
-    }
-    
-    function getBackALLDAI() public{
-        DAI.transfer(_msgSender(),contractRevenue());
-    }
-
-    function totalPayees() public view returns(uint256){
-        return _payees.length;
-    }
-
-    /**
-     * @dev Getter for the total shares held by payees.
-     */
-    function totalShares() public view returns (uint256) {
-        return _totalShares;
-    }
-
-    /**
-     * @dev Getter for the total amount of Ether already released.
-     */
-    function totalReleased() public view returns (uint256) {
-        return _totalReleased;
-    }
-
-    /**
-     * @dev Getter for the amount of shares held by an account.
-     */
-    function shares(address account) public view returns (uint256) {
-        return _shares[account];
-    }
-
-    /**
-     * @dev Getter for the amount of Ether already released to a payee.
-     */
-    function released(address account) public view returns (uint256) {
-        return _released[account];
-    }
-
-    /**
-     * @dev Getter for the address of the payee number `index`.
-     */
-    function payee(uint256 index) public view returns (address) {
-        return _payees[index];
-    }
-
-    /**
-     * @dev Triggers a transfer to `account` of the amount of Ether they are owed, according to their percentage of the
-     * total shares and their previous withdrawals.
-     */
-     
-     
-     
-     
-    function release(address  account) public virtual {
-        require(_shares[account] > 0 || _unclaimedPayment[account]>0, "PaymentSplitter: account has no shares");
-        require(DAI.balanceOf(address(this))>0,"no funds to pull");
-
-        uint256 totalReceived = _totalRevenue - _pointOne[account];
-        uint256 payment = (totalReceived * _shares[account]) / _totalShares - _released[account];
-        payment = payment + _unclaimedPayment[account];
-        require(payment != 0, "PaymentSplitter: account is not due payment");
-
-        _released[account] = _released[account] + payment;
-        _totalReleased = _totalReleased + payment;
-        _unclaimedPayment[account]=0;
-
-        sendValue(account, payment);
-        
-        emit PaymentReleased(account, payment);
-    }
-    
-    function unclaimedPayment(address account) private view returns(uint256 payment){
-        if(_shares[account] > 0 && DAI.balanceOf(address(this))>0){
-        uint256 totalReceived = _totalRevenue - _pointOne[account];
-        payment = (totalReceived * _shares[account]) / _totalShares - _released[account];
-        payment = payment + _unclaimedPayment[account];    
-        }
-    }
-    function sendValue(address recipient, uint256 amount) internal {
-        require(DAI.balanceOf(address(this)) >= amount, "Address: insufficient balance");
-
-        DAI.transfer(recipient,amount);
-    }
-    
-    
-    function _addPayee(address account, uint256 shares_) public {                        // this should be private making public for dev.
-        require(account != address(0), "ERC20 : account is the zero address");
-        require(shares_ > 0, "ERC20 : shares are 0");
-        require(_shares[account] == 0, "ERC20 : account already has shares");
-        
-        
-       
-        _pointOne[account]=_totalRevenue;
-        _payees.push(account);
-        _shares[account] = shares_;
-        _totalShares = _totalShares + shares_;
-        
-        emit PayeeAdded(account, shares_);
-    }
-    
    
-    
-    
-    function subscribe(uint256 amount)public{
-        require(DAI.allowance(_msgSender(),address(this))>0,"No allowance found");
-        
-        _userInvestment[_msgSender()]=_userInvestment[_msgSender()]+amount;
-        _totalRevenue = _totalRevenue + amount;
-        
-        if(_userInvestment[_msgSender()]%_threshold==0 && _shares[_msgSender()]==0){
-            _addPayee(_msgSender(),1*10**decimals()+_shares[_msgSender()]);
-            _mint(_msgSender(),1*10**decimals());
-        }
-        else if(_userInvestment[_msgSender()]%_threshold==0 && _shares[_msgSender()]>0){
-            _unclaimedPayment[_msgSender()]=unclaimedPayment(_msgSender());
-            _pointOne[_msgSender()]=_totalRevenue;
-            _shares[_msgSender()]=_shares[_msgSender()]+1*10**decimals();
-            _mint(_msgSender(),1*10**decimals());
-            _totalShares=_totalShares+1*10**decimals();
-           
-        }
-        
-        DAI.transferFrom(_msgSender(),address(this),amount);
-    
-        
+    function subscribe(uint amount)public {
+        bool out = paymentSplitter._subscribe(amount,_threshold);
+        if(out)
+        mint(_msgSender(),1*10**decimals());
     }
-    
 
-    
-    function transfer(address recipient, uint256 amount) public override returns (bool) {
-       if(isContract(recipient) && !isContract(_msgSender()))
-        {
-        _unclaimedPayment[_msgSender()]=unclaimedPayment(_msgSender());
-        _pointOne[_msgSender()]=_totalRevenue;
-        _shares[_msgSender()]=_shares[_msgSender()]-amount;
-
-        _totalShares = _totalShares - amount;
-
+    function transfer(address recipient, uint256 amount) public override returns (bool){
+        address sender = _msgSender();
+        bool out = paymentSplitter.beforeTransferCheck(sender,recipient,amount);
+        if(out)
         _transfer(_msgSender(), recipient, amount);
-        return true;
-        }
-        else if(isContract(_msgSender()) && !isContract(recipient)){
-        _unclaimedPayment[recipient]=unclaimedPayment(recipient);
-        _pointOne[recipient]=_totalRevenue;
-        _shares[recipient]=_shares[recipient]+amount;
-       _totalShares = _totalShares + amount;
-        _transfer(_msgSender(), recipient, amount);
-        return true;
-        }
-        else if(isContract(_msgSender()) && isContract(recipient)){
-            _transfer(_msgSender(), recipient, amount);
-        return true;
-        }
-        else{
-        _unclaimedPayment[_msgSender()]=unclaimedPayment(_msgSender());
-        _pointOne[_msgSender()]=_totalRevenue;
-        _shares[_msgSender()]=_shares[_msgSender()]-amount;
+        return out;
+    }
 
-        _unclaimedPayment[recipient]=unclaimedPayment(recipient);
-        _pointOne[recipient]=_totalRevenue;
-        _shares[recipient]=_shares[recipient]+amount;
-
-        _transfer(_msgSender(), recipient, amount);
-
-
-        return true;
-        }
-        }
-    
     function transferFrom(
         address sender,
         address recipient,
         uint256 amount
     ) public override returns (bool) {
-        
-        if(isContract(recipient) && !isContract(sender))
-        {
-        _unclaimedPayment[sender]=unclaimedPayment(sender);
-        _pointOne[sender]=_totalRevenue;
-        _shares[sender]=_shares[sender]-amount;
-        
-        _totalShares = _totalShares - amount;
-        
-        _transfer(sender, recipient, amount);
-        return true;
-        }
-        else if(isContract(sender) && !isContract(recipient)){
-        _unclaimedPayment[recipient]=unclaimedPayment(recipient);
-        _pointOne[recipient]=_totalRevenue;
-        _shares[recipient]=_shares[recipient]+amount;
-       _totalShares = _totalShares + amount;
-        _transfer(sender, recipient, amount);
-        return true;
-        }
-        else if(isContract(sender) && isContract(recipient)){
+        bool out = paymentSplitter.beforeTransferCheck(sender,recipient,amount);
+        if(out){
             _transfer(sender, recipient, amount);
-        return true;
-        }
-        else{
-        _unclaimedPayment[sender]=unclaimedPayment(sender);
-        _pointOne[sender]=_totalRevenue;
-        _shares[sender]=_shares[sender]-amount;
-        
-        _unclaimedPayment[recipient]=unclaimedPayment(recipient);
-        _pointOne[recipient]=_totalRevenue;
-        _shares[recipient]=_shares[recipient]+amount;
-       
-        _transfer(sender, recipient, amount);
-        
-        
-        return true;
-        }
-}
-    
-    function _transferFrom(
-        address sender,
-        address recipient,
-        uint256 amount
-    ) public returns (bool) {
-        _transfer(sender, recipient, amount);
 
         uint256 currentAllowance = allowance(sender,_msgSender());
-        require(currentAllowance >= amount, "ERC20: transfer amount exceeds allowance");
+        require(currentAllowance >= amount, "allowance exceeds");
         unchecked {
             _approve(sender, _msgSender(), currentAllowance - amount);
         }
-
-        return true;
-    }
-
-    
-    function mint(address account, uint256 amount) private {
-        require(amount+totalSupply()>_maxSupply," total supply reached");
-        _mint(account,amount);
-    }
-    function isContract(address account) internal view returns (bool) {
-        // This method relies on extcodesize, which returns 0 for contracts in
-        // construction, since the code is only stored at the end of the
-        // constructor execution.
-
-        uint256 size;
-        assembly {
-            size := extcodesize(account)
         }
-        return size > 0;
+        return out;
+    
+    }
+
+    function _afterTokenTransfer(address from, address to, uint256 amount) internal override(ERC20){
+        _moveDelegates(delegates[from], delegates[to], amount);
+    }
+
+
+    // Functions related to voting power delegation -- Start
+
+    function delegate(address delegatee) public {
+        return _delegate(msg.sender, delegatee);
     }
     
+    function delegateBySig(address delegatee, uint nonce, uint expiry, uint8 v, bytes32 r, bytes32 s) public {
+        bytes32 domainSeparator = keccak256(abi.encode(DOMAIN_TYPEHASH, keccak256(bytes(name())), getChainId(), address(this)));
+        bytes32 structHash = keccak256(abi.encode(DELEGATION_TYPEHASH, delegatee, nonce, expiry));
+        bytes32 digest = keccak256(abi.encodePacked("\x19\x01", domainSeparator, structHash));
+        address signatory = ecrecover(digest, v, r, s);
+        require(signatory != address(0), "delegateBySig:invalid sig.");
+        require(nonce == nonces[signatory]++, "delegateBySig:invalid nonce");
+        require(block.timestamp <= expiry, "delegateBySig:sig. expired");
+        return _delegate(signatory, delegatee);
+    }
+
+    function getCurrentVotes(address account) external view returns (uint256) {
+        uint32 nCheckpoints = numCheckpoints[account];
+        return nCheckpoints > 0 ? checkpoints[account][nCheckpoints - 1].votes : 0;
+    }
+
+    /**
+     * @notice Determine the prior number of votes for an account as of a block number
+     * @dev Block number must be a finalized block or else this function will revert to prevent misinformation.
+     * @param account The address of the account to check
+     * @param blockNumber The block number to get the vote balance at
+     * @return The number of votes the account had as of the given block
+     */
+    function getPriorVotes(address account, uint blockNumber) public view returns (uint256) {
+        require(blockNumber < block.number, "getPriorVotes:not determined");
+
+        uint32 nCheckpoints = numCheckpoints[account];
+        if (nCheckpoints == 0) {
+            return 0;
+        }
+
+        // First check most recent balance
+        if (checkpoints[account][nCheckpoints - 1].fromBlock <= blockNumber) {
+            return checkpoints[account][nCheckpoints - 1].votes;
+        }
+
+        // Next check implicit zero balance
+        if (checkpoints[account][0].fromBlock > blockNumber) {
+            return 0;
+        }
+
+        uint32 lower = 0;
+        uint32 upper = nCheckpoints - 1;
+        while (upper > lower) {
+            uint32 center = upper - (upper - lower) / 2; // ceil, avoiding overflow
+            Checkpoint memory cp = checkpoints[account][center];
+            if (cp.fromBlock == blockNumber) {
+                return cp.votes;
+            } else if (cp.fromBlock < blockNumber) {
+                lower = center;
+            } else {
+                upper = center - 1;
+            }
+        }
+        return checkpoints[account][lower].votes;
+    }
+
+    function _delegate(address delegator, address delegatee) internal {
+        address currentDelegate = delegates[delegator];
+        uint256 delegatorBalance = balanceOf(delegator);
+        delegates[delegator] = delegatee;
+
+        emit DelegateChanged(delegator, currentDelegate, delegatee);
+
+        _moveDelegates(currentDelegate, delegatee, delegatorBalance);
+    }
+
+    function _moveDelegates(address srcRep, address dstRep, uint256 amount) internal {
+        if (srcRep != dstRep && amount > 0) {
+            if (srcRep != address(0)) {
+                uint32 srcRepNum = numCheckpoints[srcRep];
+                uint256 srcRepOld = srcRepNum > 0 ? checkpoints[srcRep][srcRepNum - 1].votes : 0;
+                uint256 srcRepNew = srcRepOld- amount;
+                _writeCheckpoint(srcRep, srcRepNum, srcRepOld, srcRepNew);
+            }
+
+            if (dstRep != address(0)) {
+                uint32 dstRepNum = numCheckpoints[dstRep];
+                uint256 dstRepOld = dstRepNum > 0 ? checkpoints[dstRep][dstRepNum - 1].votes : 0;
+                uint256 dstRepNew = dstRepOld+amount;
+                _writeCheckpoint(dstRep, dstRepNum, dstRepOld, dstRepNew);
+            }
+        }
+    }
+
+    function _writeCheckpoint(address delegatee, uint32 nCheckpoints, uint256 oldVotes, uint256 newVotes) internal {
+      uint32 blockNumber = safe32(block.number, "block no. exceeds 32b");
+
+      if (nCheckpoints > 0 && checkpoints[delegatee][nCheckpoints - 1].fromBlock == blockNumber) {
+          checkpoints[delegatee][nCheckpoints - 1].votes = newVotes;
+      } else {
+          checkpoints[delegatee][nCheckpoints] = Checkpoint(blockNumber, newVotes);
+          numCheckpoints[delegatee] = nCheckpoints + 1;
+      }
+
+      emit DelegateVotesChanged(delegatee, oldVotes, newVotes);
+    }
+
+    //Functions related to voting power delegation -- End
+
     
-    
+function safe32(uint n, string memory errorMessage) public pure returns (uint32) {
+        require(n < 2**32, errorMessage);
+        return uint32(n);
+    }
+
+
+
+
+    function getChainId() internal view returns (uint) {
+        uint256 chainId;
+        assembly { chainId := chainid() }
+        return chainId;
+    }
 }
+    
+    

@@ -51,6 +51,12 @@ export default {
     runOnCompile: true,
     strict: true,
   },
+  settings: {
+    optimizer: {
+      enabled: true,
+      runs: 20
+    }
+  },
   networks: {
     localhost: {
       url:' http://127.0.0.1:8545/'
