@@ -36,7 +36,7 @@ export default {
     // https://hardhat.org/hardhat-network/#solidity-optimizer-support
     optimizer: {
       enabled: true,
-      runs: 1000000,
+      runs: 20,
     },
   },
   paths: {
@@ -50,12 +50,6 @@ export default {
     disambiguatePaths: false,
     runOnCompile: true,
     strict: true,
-  },
-  settings: {
-    optimizer: {
-      enabled: true,
-      runs: 20
-    }
   },
   networks: {
     localhost: {

@@ -69,7 +69,7 @@ contract PanaFactory is Ownable  {
         
         PanacloudPlatform platfrom = PanacloudPlatform(panacloudPlatformAddress);
         
-        ApiToken apiToken = new ApiToken(daoAndTokenDetails[1],daoAndTokenDetails[2],maxApiTokenSupply,
+        APIToken apiToken = new APIToken(daoAndTokenDetails[1],daoAndTokenDetails[2],maxApiTokenSupply,
                             initialApiTokenSupply,developerSharePercentage,apiInvestorSharePercentage,
                             platfrom.panacloudAPIShare(),platfrom.apiIdeaProposerShare(),_thresholdForSubscriberMinting);
         
