@@ -5,7 +5,7 @@ import "hardhat/console.sol";
 
 contract PanacloudPlatform is Ownable {
 
-    uint256 public panacloudAPIShare = 5;
+    uint256 public panacloudShareInAPI = 5;
     uint256 public apiIdeaProposerShare = 1;
 
     // Key DAO address value Developer address
@@ -32,7 +32,7 @@ contract PanacloudPlatform is Ownable {
     function setPanacloudAPIShare(uint256 newShare) public onlyOwner {
         require(newShare > 1, "Platform Share must be greater than 1");
         require(newShare <= 50, "Platform Share cannot be greater than 50");
-        panacloudAPIShare = newShare;
+        panacloudShareInAPI = newShare;
     }
 
     function setAPIIdeaProposerShare(uint256 newShare) public onlyOwner {

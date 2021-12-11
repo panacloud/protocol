@@ -5,7 +5,7 @@ import "./APINFT.sol";
 import "./PanacloudPlatform.sol";
 import "./utils/DAOFactory.sol";
 import "./utils/APITokenFactory.sol";
-
+import "./libs/Common.sol";
 
 // Need to decide if we really need a factory or not
 // creating a smart contract for factory will cost us
@@ -44,7 +44,6 @@ contract PanaFactory is Ownable  {
     // that is required to vote “Yes” on a proposal before it can be approved. For example, if 
     // the “Minimum Approval” is set to 20%, then more than 20% of the outstanding token supply 
     // must vote “Yes” on a proposal for it to pass.
-    
     /**
         apiDetails Array 
         Index 0 - API PorposalId
@@ -56,11 +55,31 @@ contract PanaFactory is Ownable  {
         Index 0 - API DAO Name
         Index 1 - API Token Name
         Index 2 - API Token Symbol
-     */   
+     */  
+    function generateAPIDao(Common.APITokenConfig memory apiTokenConfig, 
+                            Common.APIDAOConfig memory apiDAOConfig) public {
+        
+        
+        PanacloudPlatform platfrom = PanacloudPlatform(panacloudPlatformAddress);
+
+        // Need to fix msg.sender -- as API's owner will be API token factory, which is incorrect
+        address apiTokenAddress = apiTokenFactory.generateAPIToken(apiTokenConfig, 
+                                                            platfrom.panacloudShareInAPI(),
+                                                            platfrom.apiIdeaProposerShare(),
+                                                            platfrom.paymentSplitterAddress());
+        
+        // Need to fix msg.sender -- as DAO's owner will be DAO factory, which is incorrect
+        address apiDaoAddress = daoFactory.generateAPIDao(apiDAOConfig, apiTokenAddress);
+        
+        platfrom.apiDAOCreated(msg.sender, address(apiDaoAddress), address(apiTokenAddress));
+        
+    }
+
+    /*
     function generateAPIDao(string[] memory apiDetails, string[] memory daoAndTokenDetails,
         uint256 maxApiTokenSupply, uint256 initialApiTokenSupply, uint256 developerSharePercentage,
         uint256 apiInvestorSharePercentage, uint256 votingSupportPercentage, 
-        uint256 votingMinimumApprovalPercentage, uint256 voteDuration, uint256 _thresholdForSubscriberMinting) public {
+        uint256 votingMinimumApprovalPercentage, uint256 voteDuration, uint256 _thresholdForSubscriberMinting) public pure{
 
         PanacloudPlatform platfrom = PanacloudPlatform(panacloudPlatformAddress);
 
@@ -73,9 +92,8 @@ contract PanaFactory is Ownable  {
                                         voteDuration, apiTokenAddress);
         
         platfrom.apiDAOCreated(msg.sender, address(apiDaoAddress), address(apiTokenAddress));
-        
     }
-
+    */
     /*
     function generateAPIDao(string memory apiProposalId, string memory apiID, 
             string memory apiTitle, string memory apiType, string memory apiDaoName,
