@@ -3,8 +3,9 @@ pragma solidity >=0.4.22 <0.9.0;
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "./APINFT.sol";
 import "./PanacloudPlatform.sol";
-import "./factories/DaoFactory.sol";
-import "./factories/APITokenFactory.sol";
+import "./utils/DAOFactory.sol";
+import "./utils/APITokenFactory.sol";
+
 
 // Need to decide if we really need a factory or not
 // creating a smart contract for factory will cost us
@@ -13,11 +14,21 @@ contract PanaFactory is Ownable  {
     address private apiNFTAddress;
     address private panaCoinAddress;
     address private panacloudPlatformAddress;
+    address private apiTokenFactoryAddress;
+    address private daoFactoryAddress;
+    DAOFactory private daoFactory;
+    APITokenFactory private apiTokenFactory;
 
-    function initialize(address _panaCoin, address _apiNFT, address _panacloudPlatform) public onlyOwner {
+    function initialize(address _panaCoin, address _apiNFT, address _panacloudPlatform, 
+                        address _apiTokenFactoryAddress, address _daoFactoryAddress) public onlyOwner {
         panaCoinAddress = _panaCoin;
         apiNFTAddress = _apiNFT;
         panacloudPlatformAddress = _panacloudPlatform;
+        apiTokenFactoryAddress = _apiTokenFactoryAddress;
+        daoFactoryAddress = _daoFactoryAddress;
+        daoFactory = DAOFactory(_daoFactoryAddress);
+        apiTokenFactory = APITokenFactory(_apiTokenFactoryAddress);
+
     }
 
     function generateAPIIdeaNFT(address ideaOwnerAddress) public returns(uint256) {
@@ -50,14 +61,14 @@ contract PanaFactory is Ownable  {
         uint256 maxApiTokenSupply, uint256 initialApiTokenSupply, uint256 developerSharePercentage,
         uint256 apiInvestorSharePercentage, uint256 votingSupportPercentage, 
         uint256 votingMinimumApprovalPercentage, uint256 voteDuration, uint256 _thresholdForSubscriberMinting,
-        address _paymentSplitterAddress) public {
+        address _paymentSplitterAddress) public view {
+
+        //address apiTokenAddress = APITokenFactory.generateAPIToken(daoAndTokenDetails, maxApiTokenSupply, initialApiTokenSupply, developerSharePercentage, apiInvestorSharePercentage, _thresholdForSubscriberMinting,_paymentSplitterAddress);
+        //address apiDaoAddress = DaoFactory.generateAPIDao(apiDetails, daoAndTokenDetails, votingSupportPercentage, votingMinimumApprovalPercentage, voteDuration, address(apiTokenAddress));
         
-        address apiTokenAddress = APITokenFactory.generateAPIToken(daoAndTokenDetails, maxApiTokenSupply, initialApiTokenSupply, developerSharePercentage, apiInvestorSharePercentage, _thresholdForSubscriberMinting,_paymentSplitterAddress);
-        address apiDaoAddress = DaoFactory.generateAPIDao(apiDetails, daoAndTokenDetails, votingSupportPercentage, votingMinimumApprovalPercentage, voteDuration, address(apiTokenAddress));
+        //PanacloudPlatform platfrom = PanacloudPlatform(panacloudPlatformAddress);
         
-        PanacloudPlatform platfrom = PanacloudPlatform(panacloudPlatformAddress);
-        
-        platfrom.apiDAOCreated(msg.sender, address(apiDaoAddress), address(apiTokenAddress));
+        //platfrom.apiDAOCreated(msg.sender, address(apiDaoAddress), address(apiTokenAddress));
         
     }
     /*
