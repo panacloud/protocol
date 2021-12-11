@@ -18,7 +18,7 @@ contract APIToken is ERC20{
 //variable defining
    
     address private _paymentSplitterAddress;
-    uint256 public _threshold;
+    uint256 public _thresholdForSubscriberMinting;
     uint256 public _initialSupply;
     uint256 public _maxSupply;
     uint256 public _developerSharePercentage;
@@ -60,9 +60,9 @@ contract APIToken is ERC20{
         uint256 initialSupply,
         uint256 developerSharePercentage,
         uint256 apiInvestorSharePercentage,
+        uint256 thresholdForSubscriberMinting,
         uint256 panaCloudSharePercentage,
         uint256 apiProposerSharePercentage,
-        uint256 threshold,
         address paymentSplitterAddress) ERC20(name,symbol)  {
         
         // require(payees.length == shares_.length, " payees and shares length mismatch");
@@ -76,7 +76,7 @@ contract APIToken is ERC20{
          paymentSplitter = PaymentSplitter(paymentSplitterAddress);
     
         _maxSupply = maxSupply;
-        _threshold=threshold;
+        _thresholdForSubscriberMinting=thresholdForSubscriberMinting;
           owner = msg.sender;
         
         // for (uint256 i = 0; i < payees.length; i++) {
@@ -94,7 +94,7 @@ contract APIToken is ERC20{
 
    
     function subscribe(uint amount)public {
-        bool out = paymentSplitter._subscribe(amount,_threshold);
+        bool out = paymentSplitter._subscribe(amount,_thresholdForSubscriberMinting);
         if(out)
         mint(_msgSender(),1*10**decimals());
     }
