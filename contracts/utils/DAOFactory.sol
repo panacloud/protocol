@@ -3,7 +3,7 @@ pragma solidity >=0.4.22 <0.9.0;
 
 import "../APIDao.sol";
 
-library DaoFactory {
+contract DAOFactory {
     
     function generateAPIDao(string[] memory apiDetails, string[] memory daoAndTokenDetails,
         uint256 votingSupportPercentage, uint256 votingMinimumApprovalPercentage, 
