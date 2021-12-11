@@ -19,9 +19,14 @@ contract PanacloudPlatform is Ownable {
     // key:develper address, value: Dao Address array
     mapping(address => address[]) private ownedTokens;
 
+    address public paymentSplitterAddress;
 
     constructor() {
         console.log("Platform Launched");
+    }
+
+    function initialize(address _paymentSplitterAddress) public onlyOwner {
+        paymentSplitterAddress = _paymentSplitterAddress;
     }
 
     function setPanacloudAPIShare(uint256 newShare) public onlyOwner {

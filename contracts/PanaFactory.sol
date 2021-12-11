@@ -60,39 +60,22 @@ contract PanaFactory is Ownable  {
     function generateAPIDao(string[] memory apiDetails, string[] memory daoAndTokenDetails,
         uint256 maxApiTokenSupply, uint256 initialApiTokenSupply, uint256 developerSharePercentage,
         uint256 apiInvestorSharePercentage, uint256 votingSupportPercentage, 
-        uint256 votingMinimumApprovalPercentage, uint256 voteDuration, uint256 _thresholdForSubscriberMinting,
-        address _paymentSplitterAddress) public view {
-
-        //address apiTokenAddress = APITokenFactory.generateAPIToken(daoAndTokenDetails, maxApiTokenSupply, initialApiTokenSupply, developerSharePercentage, apiInvestorSharePercentage, _thresholdForSubscriberMinting,_paymentSplitterAddress);
-        //address apiDaoAddress = DaoFactory.generateAPIDao(apiDetails, daoAndTokenDetails, votingSupportPercentage, votingMinimumApprovalPercentage, voteDuration, address(apiTokenAddress));
-        
-        //PanacloudPlatform platfrom = PanacloudPlatform(panacloudPlatformAddress);
-        
-        //platfrom.apiDAOCreated(msg.sender, address(apiDaoAddress), address(apiTokenAddress));
-        
-    }
-    /*
-    function generateAPIToken(string[] memory apiDetails, string[] memory daoAndTokenDetails,
-        uint256 maxApiTokenSupply, uint256 initialApiTokenSupply, uint256 developerSharePercentage,
-        uint256 apiInvestorSharePercentage, uint256 votingSupportPercentage, 
         uint256 votingMinimumApprovalPercentage, uint256 voteDuration, uint256 _thresholdForSubscriberMinting) public {
-        
-        
+
         PanacloudPlatform platfrom = PanacloudPlatform(panacloudPlatformAddress);
+
+        address apiTokenAddress = apiTokenFactory.generateAPIToken(daoAndTokenDetails, maxApiTokenSupply,
+                                        initialApiTokenSupply, developerSharePercentage, 
+                                        apiInvestorSharePercentage, _thresholdForSubscriberMinting, 
+                                        platfrom.paymentSplitterAddress());
+        address apiDaoAddress = daoFactory.generateAPIDao(apiDetails, daoAndTokenDetails, 
+                                        votingSupportPercentage, votingMinimumApprovalPercentage, 
+                                        voteDuration, apiTokenAddress);
         
-        APIToken apiToken = new APIToken(daoAndTokenDetails[1],daoAndTokenDetails[2],maxApiTokenSupply,
-                            initialApiTokenSupply,developerSharePercentage,apiInvestorSharePercentage,
-                            platfrom.panacloudAPIShare(),platfrom.apiIdeaProposerShare(),_thresholdForSubscriberMinting);
-        
-        
-        APIDao apiDao = new APIDao(apiDetails[0],apiDetails[1],apiDetails[2],apiDetails[3],
-                            daoAndTokenDetails[0],votingSupportPercentage,votingMinimumApprovalPercentage,
-                            voteDuration, address(0));
-        
-        platfrom.apiDAOCreated(msg.sender, address(apiDao), address(0));
+        platfrom.apiDAOCreated(msg.sender, address(apiDaoAddress), address(apiTokenAddress));
         
     }
-    */
+
     /*
     function generateAPIDao(string memory apiProposalId, string memory apiID, 
             string memory apiTitle, string memory apiType, string memory apiDaoName,
