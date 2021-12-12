@@ -2,7 +2,7 @@
 pragma solidity >=0.4.22 <0.9.0;
 
 import "../APIDao.sol";
-import "../libs/Common.sol";
+import "../libs/Global.sol";
 
 
 contract DAOFactory {
@@ -19,7 +19,7 @@ contract DAOFactory {
     }
     */
 
-    function generateAPIDao(Common.APIDAOConfig memory apiDAOConfig, address apiTokenAddress) public returns(address){
+    function generateAPIDao(Global.APIDAOConfig memory apiDAOConfig, address apiTokenAddress) public returns(address){
 
             APIDao apiDao = new APIDao(apiDAOConfig.apiProposalId,apiDAOConfig.apiId,apiDAOConfig.apiTitle,apiDAOConfig.apiType,
                             apiDAOConfig.daoName,apiDAOConfig.votingSupportPercentage,apiDAOConfig.votingMinimumApprovalPercentage,

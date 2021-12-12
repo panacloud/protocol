@@ -2,7 +2,7 @@
 pragma solidity >=0.4.22 <0.9.0;
 
 import "../APIToken.sol";
-import "../libs/Common.sol";
+import "../libs/Global.sol";
 
 contract APITokenFactory {
     
@@ -17,7 +17,7 @@ contract APITokenFactory {
             return address(apiToken);
     }
     */
-    function generateAPIToken(Common.APITokenConfig memory apiTokenConfig, uint256 panacloudShareInAPI, 
+    function generateAPIToken(Global.APITokenConfig memory apiTokenConfig, uint256 panacloudShareInAPI, 
                                 uint256 apiIdeaProposerShare, address _paymentSplitterAddress) 
                                 public returns(address){
             APIToken apiToken = new APIToken(apiTokenConfig.apiTokenName,apiTokenConfig.apiTokenSymbol, apiTokenConfig.maxApiTokenSupply,

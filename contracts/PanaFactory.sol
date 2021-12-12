@@ -5,7 +5,7 @@ import "./APINFT.sol";
 import "./PanacloudPlatform.sol";
 import "./utils/DAOFactory.sol";
 import "./utils/APITokenFactory.sol";
-import "./libs/Common.sol";
+import "./libs/Global.sol";
 
 // Need to decide if we really need a factory or not
 // creating a smart contract for factory will cost us
@@ -56,8 +56,8 @@ contract PanaFactory is Ownable  {
         Index 1 - API Token Name
         Index 2 - API Token Symbol
      */  
-    function generateAPIDao(Common.APITokenConfig memory apiTokenConfig, 
-                            Common.APIDAOConfig memory apiDAOConfig) public {
+    function generateAPIDao(Global.APITokenConfig memory apiTokenConfig, 
+                            Global.APIDAOConfig memory apiDAOConfig) public {
         
         
         PanacloudPlatform platfrom = PanacloudPlatform(panacloudPlatformAddress);
