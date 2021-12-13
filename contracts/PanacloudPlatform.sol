@@ -5,6 +5,11 @@ import "hardhat/console.sol";
 
 contract PanacloudPlatform is Ownable {
 
+    struct UserDAODetails {
+        address apiDao;
+        address apiToken;
+    }
+
     uint256 public panacloudShareInAPI = 5;
     uint256 public apiIdeaProposerShare = 1;
 
@@ -13,13 +18,19 @@ contract PanacloudPlatform is Ownable {
 
     // Mapping for developer to list of owned DAOs
     // key:develper address, value: Dao Address array
-    mapping(address => address[]) private ownedDAOs;
+    //mapping(address => address[]) private ownedDAOs;
 
     // Mapping for developer to list of owned Tokens
     // key:develper address, value: Dao Address array
-    mapping(address => address[]) private ownedTokens;
+    //mapping(address => address[]) private ownedTokens;
+
+    // Mapping for developer to list of owned Dao and Tokens
+    // key:develper address, value: Array of struct holding Dao and Token address
+    mapping(address => UserDAODetails[]) ownedDAOs;
 
     address public paymentSplitterAddress;
+
+    event APIDAOCreated(address daoCreator, address apiToken, address apiDao);
 
     constructor() {
         console.log("Platform Launched");
@@ -41,10 +52,14 @@ contract PanacloudPlatform is Ownable {
         apiIdeaProposerShare = newShare;
     }
 
-    function apiDAOCreated(address owner, address apiDao, address apiToken) public {
+    function apiDAOCreated(address owner, address apiToken, address apiDao) public {
         apiDAOToUserMapping[apiDao] = owner;
-        ownedDAOs[owner].push(apiDao);
-        ownedTokens[owner].push(apiToken);
+        ownedDAOs[owner].push(UserDAODetails(apiToken, apiDao));
+        emit APIDAOCreated(owner, apiDao, apiToken);
+    }
+
+    function getDAOAndTokenForOwner(address owner) public view returns (UserDAODetails[] memory userAllDAOs){
+        return ownedDAOs[owner];
     }
 
 }
