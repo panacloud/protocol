@@ -1,0 +1,13 @@
+{
+    "rinkeby": {
+        "apiTokenFactory":"0x18630eC22859f7E7725513b1CEcCa7df2dB764B6",
+        "daoFactory":"0x4E9b5f6B43d5A497BB3Eb45a1474694Da1761Ac2",
+        "paymentSplitter":"0xd88Ab12f329C3e5dBaD1092b7E4710a7C3B2731C",
+        "panaCoin":"0xFda643aE677a2155795a9e3154C691d9Df18237d",
+        "apiNFT":"0x6825755326cF5cc3BB432b0A05060f3dA2D7eCa7",
+        "panacloudPlatform":"0x7FeDF14dAb670F27792D81579B74B62aB82f46eb",
+        "panaFactory":"0xC58B924Feb50C42f4F6226D50c3f53f11ACbD536",
+        "timelock":"0xA6854e9Df13cCCD78Ad53EF249B2eA0Eb2E7bF6c",
+        "platformGoverner":"0x04B934922380d6F7a1B1C4Aeecc3865e2D1f8338"
+    }
+}
