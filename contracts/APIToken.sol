@@ -67,7 +67,7 @@ contract APIToken is ERC20{
         
         // require(payees.length == shares_.length, " payees and shares length mismatch");
         // require(payees.length > 0, " no payees");
-         _initialSupply = initialSupply;
+         _initialSupply = initialSupply * 1e18;
          _developerSharePercentage = developerSharePercentage;
          _apiInvestorSharePercentage = apiInvestorSharePercentage;
          _panaCloudSharePercentage = panaCloudSharePercentage;
@@ -75,8 +75,8 @@ contract APIToken is ERC20{
          _paymentSplitterAddress = paymentSplitterAddress;
          paymentSplitter = PaymentSplitter(paymentSplitterAddress);
     
-        _maxSupply = maxSupply;
-        _thresholdForSubscriberMinting=thresholdForSubscriberMinting;
+        _maxSupply = maxSupply * 1e18;
+        _thresholdForSubscriberMinting=thresholdForSubscriberMinting; // Still needs to see what it will do
           owner = msg.sender;
         
         // for (uint256 i = 0; i < payees.length; i++) {
