@@ -17,7 +17,7 @@ contract APITokenFactory {
             return address(apiToken);
     }
     */
-    function generateAPIToken(Global.APITokenConfig memory apiTokenConfig, uint256 panacloudShareInAPI, 
+    function createAPIToken(Global.APITokenConfig memory apiTokenConfig, uint256 panacloudShareInAPI, 
                                 uint256 apiIdeaProposerShare, address _paymentSplitterAddress) 
                                 public returns(address){
             APIToken apiToken = new APIToken(apiTokenConfig.apiTokenName,apiTokenConfig.apiTokenSymbol, apiTokenConfig.maxApiTokenSupply,

@@ -56,22 +56,22 @@ contract PanaFactory is Ownable  {
         Index 1 - API Token Name
         Index 2 - API Token Symbol
      */  
-    function generateAPIDao(Global.APITokenConfig memory apiTokenConfig, 
+    function createAPIDao(Global.APITokenConfig memory apiTokenConfig, 
                             Global.APIDAOConfig memory apiDAOConfig) public {
         
         
         PanacloudPlatform platfrom = PanacloudPlatform(panacloudPlatformAddress);
 
         // Need to fix msg.sender -- as API's owner will be API token factory, which is incorrect
-        address apiTokenAddress = apiTokenFactory.generateAPIToken(apiTokenConfig, 
+        address apiTokenAddress = apiTokenFactory.createAPIToken(apiTokenConfig, 
                                                             platfrom.panacloudShareInAPI(),
                                                             platfrom.apiIdeaProposerShare(),
                                                             platfrom.paymentSplitterAddress());
         
         // Need to fix msg.sender -- as DAO's owner will be DAO factory, which is incorrect
-        address apiDaoAddress = daoFactory.generateAPIDao(apiDAOConfig, apiTokenAddress);
+        address apiDaoAddress = daoFactory.createAPIDao(apiDAOConfig, apiTokenAddress);
         
-        platfrom.apiDAOCreated(msg.sender, address(apiDaoAddress), address(apiTokenAddress));
+        platfrom.apiDAOCreated(msg.sender, address(apiTokenAddress), address(apiDaoAddress));
         
     }
 

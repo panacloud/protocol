@@ -19,10 +19,10 @@ contract DAOFactory {
     }
     */
 
-    function generateAPIDao(Global.APIDAOConfig memory apiDAOConfig, address apiTokenAddress) public returns(address){
+    function createAPIDao(Global.APIDAOConfig memory apiDAOConfig, address apiTokenAddress) public returns(address){
 
-            APIDao apiDao = new APIDao(apiDAOConfig.apiProposalId,apiDAOConfig.apiId,apiDAOConfig.apiTitle,apiDAOConfig.apiType,
-                            apiDAOConfig.daoName,apiDAOConfig.votingSupportPercentage,apiDAOConfig.votingMinimumApprovalPercentage,
+            APIDao apiDao = new APIDao(apiDAOConfig.apiProposalId,apiDAOConfig.apiId, apiDAOConfig.daoName,
+                            apiDAOConfig.votingSupportPercentage,apiDAOConfig.votingMinimumApprovalPercentage,
                             apiDAOConfig.voteDuration, apiTokenAddress);
             return address(apiDao);
     }
