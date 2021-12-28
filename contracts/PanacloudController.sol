@@ -5,7 +5,7 @@ import "./governance/PanaCoin.sol";
 import "./APINFT.sol";
 import "./PlatformGoverner.sol";
 import "./PanaFactory.sol";
-import "./Timelock.sol";
+import "./governance/Timelock.sol";
 
 // Central Point for all the contract to initialize
 contract PanacloudController is Ownable  {
