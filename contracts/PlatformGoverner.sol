@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.4.22 <0.9.0;
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "./GovernerCore.sol";
-import "./GovernerEvents.sol";
+import "./governance/GovernerCore.sol";
+import "./governance/GovernerEvents.sol";
 import "./PanaFactory.sol";
-import "./GovernerInterfaces.sol";
+import "./governance/GovernerInterfaces.sol";
 
 // Timelock still need to be worked on
 contract PlatformGoverner is GovernerCore, GovernerEvents, Ownable {
