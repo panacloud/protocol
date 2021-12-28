@@ -12,10 +12,10 @@ contract GovernerCore {
     uint public votingPeriod = 17280; // ~3 days in blocks (assuming 15s blocks)
     
     // @notice The number of votes required in order for a voter to become a proposer
-    uint public proposalThreshold = 100000e18; // 100,000 = 1% of Token
+    uint public proposalThreshold = 10000000e18; // 10,000,000 = 1% of Token
     
     // @notice The number of votes in support of a proposal required in order for a quorum to be reached and for a vote to succeed
-    uint public quorumVotes = 400000e18; // 400,000 = 4% of Token
+    uint public quorumVotes = 40000000e18; // 4,000,000 = 4% of Token
 
     // @notice Initial proposal id set at become
     uint public initialProposalId;
@@ -35,6 +35,14 @@ contract GovernerCore {
 
     address public admin;
     address public pendingAdmin;
+    /// @notice Active brains of Governor
+    address public implementation;
+
+    /// @notice Stores the expiration of account whitelist status as a timestamp
+    mapping (address => uint) public whitelistAccountExpirations;
+
+    /// @notice Address which manages whitelisted proposals and whitelist accounts
+    address public whitelistGuardian;
 
     // Still unable to find how Compound set admin in its governer
     constructor() {
@@ -47,68 +55,62 @@ contract GovernerCore {
     }
 
     struct Proposal {
-        // @notice Unique id for looking up a proposal
+        /// @notice Unique id for looking up a proposal
         uint id;
 
-        // @notice Creator of the proposal
+        /// @notice Creator of the proposal
         address proposer;
 
-        // @notice The timestamp that the proposal will be available for execution, set once the vote succeeds
+        /// @notice The timestamp that the proposal will be available for execution, set once the vote succeeds
         uint eta;
 
-        // @notice API Details
-        APIProposalDetails apiDetails;
+        /// @notice the ordered list of target addresses for calls to be made
+        address[] targets;
 
-        // @notice The block at which voting begins: holders must delegate their votes prior to this block
+        /// @notice The ordered list of values (i.e. msg.value) to be passed to the calls to be made
+        uint[] values;
+
+        /// @notice The ordered list of function signatures to be called
+        string[] signatures;
+
+        /// @notice The ordered list of calldata to be passed to each call
+        bytes[] calldatas;
+
+        /// @notice The block at which voting begins: holders must delegate their votes prior to this block
         uint startBlock;
 
-        // @notice The block at which voting ends: votes must be cast prior to this block
+        /// @notice The block at which voting ends: votes must be cast prior to this block
         uint endBlock;
 
-        // @notice Current number of votes in favor of this proposal
+        /// @notice Current number of votes in favor of this proposal
         uint forVotes;
 
-        // @notice Current number of votes in opposition to this proposal
+        /// @notice Current number of votes in opposition to this proposal
         uint againstVotes;
 
-        // @notice Current number of votes for abstaining for this proposal
+        /// @notice Current number of votes for abstaining for this proposal
         uint abstainVotes;
 
-        // @notice Flag marking whether the proposal has been canceled
+        /// @notice Flag marking whether the proposal has been canceled
         bool canceled;
 
-        // @notice Flag marking whether the proposal has been executed
+        /// @notice Flag marking whether the proposal has been executed
         bool executed;
 
-        // @notice Receipts of ballots for the entire set of voters
+        /// @notice Receipts of ballots for the entire set of voters
         mapping (address => Receipt) receipts;
-    }
-
-    struct APIProposalDetails {
-        // @notice Title of API which is being proposed
-        string apiTitle;
-
-        // @notice List of high level features that will be included in API
-        string[] highLevelFeatures;
-
-        // @notice URL for further details about API
-        string documentationURL;
-
-        // @notice Complete in depth details about the purpose of API, its usage and 
-        string description;
     }
 
     /// @notice Ballot receipt record for a voter
     struct Receipt {
-        // @notice Whether or not a vote has been cast
+        /// @notice Whether or not a vote has been cast
         bool hasVoted;
 
-        // @notice Whether or not the voter supports the proposal or abstains
+        /// @notice Whether or not the voter supports the proposal or abstains
         uint8 support;
 
-        // @notice The number of votes the voter had, which were cast
+        /// @notice The number of votes the voter had, which were cast
         uint256 votes;
-        
     }
 
     /// @notice Possible states that a proposal may be in

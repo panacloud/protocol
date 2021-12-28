@@ -3,7 +3,7 @@ pragma solidity >=0.4.22 <0.9.0;
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "./governance/PanaCoin.sol";
 import "./APINFT.sol";
-import "./PlatformGoverner.sol";
+import "./governance/PlatformGoverner.sol";
 import "./PanaFactory.sol";
 import "./governance/Timelock.sol";
 
@@ -19,7 +19,8 @@ contract PanacloudController is Ownable  {
         PlatformGoverner panacloudGoverner = PlatformGoverner(_panaGoverner);
         PanaFactory panaFactory = PanaFactory(_panaFactory);
         panaFactory.initialize(_panacoin, _apiIdeaNFT,_panacloudPlatform, _apiTokenFactoryAddress, _daoFactoryAddress);
-        panacloudGoverner.initialize(_panaFactory, _timelock, _panacoin);
+        //panacloudGoverner.initialize(_panaFactory, _timelock, _panacoin);
+        panacloudGoverner.initialize(_timelock, _panacoin, 1, 17280, 10000000e18);
 
 
     }
