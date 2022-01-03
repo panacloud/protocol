@@ -71,7 +71,7 @@ contract PanaFactory is Ownable  {
         // Need to fix msg.sender -- as DAO's owner will be DAO factory, which is incorrect
         address apiDaoAddress = daoFactory.createAPIDao(apiDAOConfig, apiTokenAddress);
         
-        platfrom.apiDAOCreated(msg.sender, address(apiTokenAddress), address(apiDaoAddress));
+        platfrom.apiDAOCreated(msg.sender, apiDAOConfig.apiId, address(apiTokenAddress), address(apiDaoAddress));
         
     }
 

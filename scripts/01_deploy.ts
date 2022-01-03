@@ -1,4 +1,5 @@
 import { ContractReceipt, ContractTransaction } from '@ethersproject/contracts';
+import { BigNumber } from 'ethers';
 import { ethers, run } from 'hardhat';
 import { APINFT, APINFT__factory, APITokenFactory, APITokenFactory__factory, DAOFactory, DAOFactory__factory, PanacloudController, PanacloudController__factory, PanacloudPlatform, PanacloudPlatform__factory, PanaCoin, PanaCoin__factory, PanaFactory, PanaFactory__factory, PaymentSplitter, PaymentSplitter__factory, PlatformGoverner, PlatformGoverner__factory, Timelock, Timelock__factory } from '../typechain';
 
@@ -60,6 +61,13 @@ async function main() {
   const timelock:Timelock = await Timelock.deploy(owner.address, 2 * 24 * 60 * 60); // 2 days
   await timelock.deployed();
   console.log("Timelock deployed to:", timelock.address);
+
+  /*
+  const timelockTxt:ContractTransaction = await timelock.setPendingAdmin(owner.address);
+  console.log("Timelock.setPendingAdmin transaction hash:", timelockTxt.hash);
+  const timelockTxtReceipt:ContractReceipt = await timelockTxt.wait();
+  console.log("Timelock.setPendingAdmin transaction completed");
+  */
 
   const PlatformGoverner:PlatformGoverner__factory = await ethers.getContractFactory("PlatformGoverner");
   const platformGoverner:PlatformGoverner = await PlatformGoverner.deploy();

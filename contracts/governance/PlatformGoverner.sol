@@ -58,7 +58,7 @@ contract PlatformGoverner is GovernerCore, GovernerEvents {
         votingDelay = _votingDelay;
         proposalThreshold = _proposalThreshold;
 
-        timelock.acceptAdmin();
+        //timelock.acceptAdmin();
     }
 
     // IMPORTANT

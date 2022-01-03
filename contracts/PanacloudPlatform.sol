@@ -30,7 +30,7 @@ contract PanacloudPlatform is Ownable {
 
     address public paymentSplitterAddress;
 
-    event APIDAOCreated(address daoCreator, address apiToken, address apiDao);
+    event APIDAOCreated(address daoCreator, string apiId, address apiToken, address apiDao);
 
     constructor() {
         console.log("Platform Launched");
@@ -52,10 +52,10 @@ contract PanacloudPlatform is Ownable {
         apiIdeaProposerShare = newShare;
     }
 
-    function apiDAOCreated(address owner, address apiToken, address apiDao) public {
+    function apiDAOCreated(address owner, string memory apiId, address apiToken, address apiDao) public {
         apiDAOToUserMapping[apiDao] = owner;
         ownedDAOs[owner].push(UserDAODetails(apiToken, apiDao));
-        emit APIDAOCreated(owner, apiDao, apiToken);
+        emit APIDAOCreated(owner, apiId, apiDao, apiToken);
     }
 
     function getDAOAndTokenForOwner(address owner) public view returns (UserDAODetails[] memory userAllDAOs){
