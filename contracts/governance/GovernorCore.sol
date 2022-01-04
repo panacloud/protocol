@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.4.22 <0.9.0;
 
-contract GovernerCore {
+contract GovernorCore {
 
     // Governance Configuration
 
@@ -44,7 +44,7 @@ contract GovernerCore {
     /// @notice Address which manages whitelisted proposals and whitelist accounts
     address public whitelistGuardian;
 
-    // Still unable to find how Compound set admin in its governer
+    // Still unable to find how Compound set admin in its governor
     constructor() {
         admin = msg.sender;
     }

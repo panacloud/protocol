@@ -1,7 +1,7 @@
 import { ContractReceipt, ContractTransaction } from '@ethersproject/contracts';
 import { BigNumber } from 'ethers';
 import { ethers, run } from 'hardhat';
-import { APINFT, APINFT__factory, APITokenFactory, APITokenFactory__factory, DAOFactory, DAOFactory__factory, PanacloudController, PanacloudController__factory, PanacloudPlatform, PanacloudPlatform__factory, PanaCoin, PanaCoin__factory, PanaFactory, PanaFactory__factory, PaymentSplitter, PaymentSplitter__factory, PlatformGoverner, PlatformGoverner__factory, Timelock, Timelock__factory } from '../typechain';
+import { APINFT, APINFT__factory, APITokenFactory, APITokenFactory__factory, DAOFactory, DAOFactory__factory, PanacloudController, PanacloudController__factory, PanacloudPlatform, PanacloudPlatform__factory, PanaCoin, PanaCoin__factory, PanaFactory, PanaFactory__factory, PaymentSplitter, PaymentSplitter__factory, PlatformGovernor, PlatformGovernor__factory, Timelock, Timelock__factory } from '../typechain';
 
 async function main() {
 
@@ -69,16 +69,16 @@ async function main() {
   console.log("Timelock.setPendingAdmin transaction completed");
   */
 
-  const PlatformGoverner:PlatformGoverner__factory = await ethers.getContractFactory("PlatformGoverner");
-  const platformGoverner:PlatformGoverner = await PlatformGoverner.deploy();
-  await platformGoverner.deployed();
-  console.log("PlatformGoverner deployed to:", platformGoverner.address);
+  const PlatformGovernor:PlatformGovernor__factory = await ethers.getContractFactory("PlatformGovernor");
+  const platformGovernor:PlatformGovernor = await PlatformGovernor.deploy();
+  await platformGovernor.deployed();
+  console.log("PlatformGovernor deployed to:", platformGovernor.address);
   
-  const txt3:ContractTransaction = await platformGoverner.initialize(panaFactory.address,timelock.address, panaCoin.address);
-  //const txt3:ContractTransaction = await platformGoverner.initialize("0xC58B924Feb50C42f4F6226D50c3f53f11ACbD536","0xA6854e9Df13cCCD78Ad53EF249B2eA0Eb2E7bF6c", "0xFda643aE677a2155795a9e3154C691d9Df18237d");
-  console.log("PlatformGoverner.initialize transaction hash:", txt3.hash);
+  const txt3:ContractTransaction = await platformGovernor.initialize(timelock.address, panaCoin.address, BigNumber.from("17280"), BigNumber.from("1"), ethers.utils.parseEther("10000000"));
+  //const txt3:ContractTransaction = await platformGovernor.initialize("0xC58B924Feb50C42f4F6226D50c3f53f11ACbD536","0xA6854e9Df13cCCD78Ad53EF249B2eA0Eb2E7bF6c", "0xFda643aE677a2155795a9e3154C691d9Df18237d");
+  console.log("PlatformGovernor.initialize transaction hash:", txt3.hash);
   const txtReceipt3:ContractReceipt = await txt3.wait();
-  console.log("PlatformGoverner.initialize transaction completed");
+  console.log("PlatformGovernor.initialize transaction completed");
   
 
   /*
