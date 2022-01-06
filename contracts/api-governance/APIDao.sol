@@ -106,8 +106,7 @@ contract APIDao is APIGovernorCore, GovernorEvents, Ownable {
     function propose(address[] memory targets, uint[] memory values, string[] memory signatures, bytes[] memory calldatas, string memory description) public returns (uint) {
         
         // Allow addresses above proposal threshold and whitelisted addresses to propose
-        //>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>.. need to correc this percent to number
-        require(apiToken.getPriorVotes(msg.sender, (block.number - 1)) > proposalThresholdPercent || isWhitelisted(msg.sender), "APIGovernor::propose: proposer votes below proposal threshold");
+        require(apiToken.getPriorVotes(msg.sender, (block.number - 1)) > getVotesFromPercentOfTokenSupply(proposalThresholdPercent) || isWhitelisted(msg.sender), "APIGovernor::propose: proposer votes below proposal threshold");
         require(targets.length == values.length && targets.length == signatures.length && targets.length == calldatas.length, "APIGovernor::propose: proposal function information arity mismatch");
         require(targets.length != 0, "APIGovernor::propose: must provide actions");
         require(targets.length <= proposalMaxOperations, "APIGovernor::propose: too many actions");
@@ -194,12 +193,10 @@ contract APIDao is APIGovernorCore, GovernorEvents, Ownable {
         if(msg.sender != proposal.proposer) {
             // Whitelisted proposers can't be canceled for falling below proposal threshold
             if(isWhitelisted(proposal.proposer)) {
-                //>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>.. need to correc this percent to number
-                require((apiToken.getPriorVotes(proposal.proposer, (block.number - 1)) < proposalThresholdPercent) && msg.sender == whitelistGuardian, "APIGovernor::cancel: whitelisted proposer");
+                require((apiToken.getPriorVotes(proposal.proposer, (block.number - 1)) < getVotesFromPercentOfTokenSupply(proposalThresholdPercent)) && msg.sender == whitelistGuardian, "APIGovernor::cancel: whitelisted proposer");
             }
             else {
-                //>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>.. need to correc this percent to number
-                require((apiToken.getPriorVotes(proposal.proposer, (block.number - 1)) < proposalThresholdPercent), "APIGovernor::cancel: proposer above threshold");
+                require((apiToken.getPriorVotes(proposal.proposer, (block.number - 1)) < getVotesFromPercentOfTokenSupply(proposalThresholdPercent)), "APIGovernor::cancel: proposer above threshold");
             }
         }
         
@@ -245,8 +242,8 @@ contract APIDao is APIGovernorCore, GovernorEvents, Ownable {
             return ProposalState.Pending;
         } else if (block.number <= proposal.endBlock) {
             return ProposalState.Active;
-            //>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>.. need to correc this percent to number
-        } else if (proposal.forVotes <= proposal.againstVotes || proposal.forVotes < quorumVotesPercent) {
+            //>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>.. need to correct this percent to number
+        } else if (proposal.forVotes <= proposal.againstVotes || proposal.forVotes < getVotesFromPercentOfTokenSupply(quorumVotesPercent)) {
             return ProposalState.Defeated;
         } else if (proposal.eta == 0) {
             return ProposalState.Succeeded;
@@ -297,6 +294,16 @@ contract APIDao is APIGovernorCore, GovernorEvents, Ownable {
         receipt.votes = votes;
 
         return votes;
+    }
+
+    /**
+      * @notice Gets current percent of circulating supply
+      * @param percent the percent of supply needed in ten-thousandths
+      * @return votes
+      */
+      /// @notice change from original contract
+    function getVotesFromPercentOfTokenSupply(uint percent) public view returns (uint256 votes) {
+        return apiToken.circulatingSupply() * percent / 1e6;
     }
 
     /**

@@ -85,7 +85,10 @@ contract APIToken is ERC20{
         // }
     }
 
-    
+    // For now circulatingSupply is equal to totalSupply, but in future there might be case when our circulating supply may differ
+    function circulatingSupply() public view returns (uint256) {
+        return totalSupply();
+    }
 
    function mint(address account, uint256 amount) public  {
         require(amount+totalSupply()>_maxSupply,"total supply reached");
