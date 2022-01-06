@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.4.22 <0.9.0;
 
-import "../api-governance/APIDao.sol";
+import "../api-governance/APIGovernor.sol";
 import "../libs/Global.sol";
 
 
@@ -19,11 +19,13 @@ contract DAOFactory {
     }
     */
 
-    function createAPIDao(Global.APIDAOConfig memory apiDAOConfig, address apiTokenAddress) public returns(address){
-
+    function createAPIDao(address apiTimelock, Global.APIDAOConfig memory apiDAOConfig, address apiTokenAddress) public returns(address){
+            APIGovernor apiDao = new APIGovernor();
+            apiDao.initialize(apiTimelock, apiTokenAddress, apiDAOConfig.votingPeriod, 1, apiDAOConfig.proposalThresholdPercent, apiDAOConfig.quorumVotesPercent, apiDAOConfig.apiProposalId, apiDAOConfig.apiId, apiDAOConfig.daoName);
+            /*
             APIDao apiDao = new APIDao(apiDAOConfig.apiProposalId,apiDAOConfig.apiId, apiDAOConfig.daoName,
                             apiDAOConfig.votingSupportPercentage,apiDAOConfig.votingMinimumApprovalPercentage,
-                            apiDAOConfig.voteDuration, apiTokenAddress);
+                            apiDAOConfig.voteDuration, apiTokenAddress);*/
             return address(apiDao);
     }
 }

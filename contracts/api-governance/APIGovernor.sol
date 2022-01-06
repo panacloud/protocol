@@ -1,12 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.4.22 <0.9.0;
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "../governance/GovernorInterfaces.sol";
 import "../governance/GovernorEvents.sol";
 import "./APIGovernorInterfaces.sol";
 import "./APIGovernorCore.sol";
 
-contract APIDao is APIGovernorCore, GovernorEvents, Ownable {
+contract APIGovernor is APIGovernorCore, GovernorEvents, Ownable {
 
     // @notice The minimum setable proposal threshold
     uint public constant MIN_PROPOSAL_THRESHOLD_PERCENT = 5000; // 0.50% of circulating supply : In ten-thosandaths 5000 = 0.50%
@@ -44,12 +43,12 @@ contract APIDao is APIGovernorCore, GovernorEvents, Ownable {
 
     /// @notice An event emitted when a new proposal is created
     /// Overloaded from existing event and added Votes Needed property
-    event ProposalCreated(uint id, address proposer, address[] targets, uint[] values, string[] signatures, bytes[] calldatas, uint startBlock, uint endBlock, uint votesNeeded, string description);
+    event NewProposalCreated(uint id, address proposer, address[] targets, uint[] values, string[] signatures, bytes[] calldatas, uint startBlock, uint endBlock, uint votesNeeded, string description);
 
     /// @notice Emitted when quorum votes is set
     event QuorumVotesSet(uint oldQuorumVotesPercent, uint newQuorumVotesPercent);
 
-    TimelockInterface timelock;
+    APIGovernorTimelockInterface timelock;
     APITokenInterface apiToken;
 
     string public apiProposalId;
@@ -88,7 +87,7 @@ contract APIDao is APIGovernorCore, GovernorEvents, Ownable {
         require((bytes(_apiID)).length > 0,"APIGovernor::initialize: invalid api id");
         require((bytes(_daoName)).length > 0,"APIGovernor::initialize: invalid DAO name");
 
-        timelock = TimelockInterface(_timelock);
+        timelock = APIGovernorTimelockInterface(_timelock);
         apiToken = APITokenInterface(_apiToken);
 
         votingPeriod = _votingPeriod;
@@ -146,7 +145,8 @@ contract APIDao is APIGovernorCore, GovernorEvents, Ownable {
 
         latestProposalIds[newProposal.proposer] = newProposal.id;
 
-        emit ProposalCreated(newProposal.id, msg.sender, targets, values, signatures, calldatas, startBlock, endBlock,newProposal.votesNeeded, description);
+        //emit ProposalCreated(newProposal.id, msg.sender, targets, values, signatures, calldatas, startBlock, endBlock,newProposal.votesNeeded, description);
+        emit NewProposalCreated(newProposal.id, msg.sender, targets, values, signatures, calldatas, startBlock, endBlock, newProposal.votesNeeded, description);
         return newProposal.id;
     }
 
