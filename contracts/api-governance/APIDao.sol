@@ -2,14 +2,17 @@
 pragma solidity >=0.4.22 <0.9.0;
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "../governance/GovernorInterfaces.sol";
+import "../governance/GovernorEvents.sol";
+import "./APIGovernorInterfaces.sol";
+import "./APIGovernorCore.sol";
 
-contract APIDao is Ownable {
+contract APIDao is APIGovernorCore, GovernorEvents, Ownable {
 
     // @notice The minimum setable proposal threshold
-    uint public constant MIN_PROPOSAL_THRESHOLD = 100e18; // 100 API Token
+    uint public constant MIN_PROPOSAL_THRESHOLD_PERCENT = 5000; // 0.50% of circulating supply : In ten-thosandaths 5000 = 0.50%
 
     // @notice The maximum setable proposal threshold
-    uint public constant MAX_PROPOSAL_THRESHOLD = 2000e18; //2000 API Token
+    uint public constant MAX_PROPOSAL_THRESHOLD_PERCENT = 20000; // 2.00% of circulating supply : In ten-thosandaths 20000 = 2.00%
 
     // @notice The minimum setable voting period
     uint public constant MIN_VOTING_PERIOD = 5760; // About 24 hours
@@ -23,6 +26,15 @@ contract APIDao is Ownable {
     // @notice The max setable voting delay
     uint public constant MAX_VOTING_DELAY = 40320; // 40320 block means about 1 week 
 
+    // @notice The minimum setable proposal threshold
+    uint public constant MIN_QUORUM_VOTES_PERCENT = 30000; // 3.00% of circulating supply : In ten-thosandaths 30000 = 3.00%
+
+    // @notice The maximum setable proposal threshold
+    uint public constant MAX_QUORUM_VOTES_PERCENT = 100000; // 10.00% of circulating supply : In ten-thosandaths 100000 = 10.00%
+
+    /// @notice The maximum number of actions that can be included in a proposal
+    uint public constant proposalMaxOperations = 10; // 10 actions
+
     //Still need to explore EIP-712 for 'DOMAIN_TYPEHASH' and 'BALLOT_TYPEHASH'
     // @notice The EIP-712 typehash for the contract's domain
     bytes32 public constant DOMAIN_TYPEHASH = keccak256("EIP712Domain(string name,uint256 chainId,address verifyingContract)");
@@ -30,62 +42,19 @@ contract APIDao is Ownable {
     // @notice The EIP-712 typehash for the ballot struct used by the contract
     bytes32 public constant BALLOT_TYPEHASH = keccak256("Ballot(uint256 proposalId,uint8 support)");
 
-    // @notice The delay before voting on a proposal may take place, once proposed
-    uint public votingDelay = 1; // 1 block
-
-    // @notice The duration of voting on a proposal, in blocks
-    uint public votingPeriod = 17280; // ~3 days in blocks (assuming 15s blocks)
-    
-    // @notice The number of votes required in order for a voter to become a proposer
-    uint public proposalThresholdPercentage = 1; // 1 % of circulating supply of API Token
-    
-    // @notice The number of votes in support of a proposal required in order for a quorum to be reached and for a vote to succeed
-    uint public quorumVotesPercentage = 40; // 40% of total votes casted with API Token
-
-    // @notice Initial proposal id set at become
-    uint public initialProposalId;
-    
-    // @notice The total number of proposals
-    uint public proposalCount;
-
-    // @notice The official record of all proposals ever proposed
-    mapping (uint => Proposal) public proposals;
-
-    // @notice The latest proposal for each proposer
-    mapping (address => uint) public latestProposalIds;
-
-    // @notice Minimum Approval is the percentage of the total token supply 
-    // that is required to vote “Yes” on a proposal before it can be approved. For example, if 
-    // the “Minimum Approval” is set to 20%, then more than 20% of the outstanding token supply 
-    // must vote “Yes” on a proposal for it to pass.
-    uint public minimumApprovalPercentage = 10; // 10 % of circulating supply of API Token
-
-    address public admin;
-    address public pendingAdmin;
+    /// @notice Emitted when quorum votes is set
+    event QuorumVotesSet(uint oldQuorumVotesPercent, uint newQuorumVotesPercent);
 
     TimelockInterface timelock;
-    // More parameters will be added based on requirement of 
-    event ProposalCreated(uint id, address proposer, string apiTitle, string description, uint startBlock, uint endBlock);
-
-    /// @param support Support value for the vote. 0=against, 1=for, 2=abstain
-    event VoteCast(address indexed voter, uint proposalId, uint8 support, uint votes, string reason);
-
-    event ProposalCanceled(uint id);
-    event ProposalQueued(uint id, uint eta);
-    event ProposalExecuted(uint id);
-    event VotingDelaySet(uint oldVotingDelay, uint newVotingDelay);
-    event VotingPeriodSet(uint oldVotingPeriod, uint newVotingPeriod);
-    event ProposalThresholdSet(uint oldProposalThreshold, uint newProposalThreshold);
-
-    event NewPendingAdmin(address oldPendingAdmin, address newPendingAdmin);
-    event NewAdmin(address oldAdmin, address newAdmin);
+    APITokenInterface apiToken;
 
     string public apiProposalId;
     string public apiID;
-    string public name = "APIDao";
+    string public name = "Panacloud API DAO";
     address public apiTokenAddress;
     bool public isProposalExists;
 
+    /*
     constructor(string memory _apiProposalId, string memory _apiID, string memory _daoName, 
                 uint256 _quorumVotesPercentage, uint256 _minimumApprovalPercentage, uint256 voteDuration, 
                 address _apiTokenAddress) {
@@ -99,88 +68,176 @@ contract APIDao is Ownable {
         apiTokenAddress = _apiTokenAddress;
         isProposalExists = (bytes(_apiProposalId)).length > 0? true: false;
     }
+    */
+    function initialize(address _timelock, address _apiToken, uint _votingPeriod, uint _votingDelay, 
+                uint _proposalThresholdPercent, uint _quorumVotesPercent, string memory _apiProposalId, 
+                string memory _apiID, string memory _daoName) public onlyAdmin {
+        require(address(timelock) == address(0), "APIGovernor::initialize: can only initialize once");
+        // Not needed at this point as already used onlyAdmin modifier
+        //require(msg.sender == admin, "PanaGovernor::initialize: admin only");
+        require(_timelock != address(0), "APIGovernor::initialize: invalid timelock address");
+        require(_apiToken != address(0), "APIGovernor::initialize: invalid API Token address");
+        require(_votingPeriod >= MIN_VOTING_PERIOD && _votingPeriod <= MAX_VOTING_PERIOD, "APIGovernor::initialize: invalid voting period");
+        require(_votingDelay >= MIN_VOTING_DELAY && _votingDelay <= MAX_VOTING_DELAY, "APIGovernor::initialize: invalid voting delay");
+        require(_proposalThresholdPercent >= MIN_PROPOSAL_THRESHOLD_PERCENT && _proposalThresholdPercent <= MAX_PROPOSAL_THRESHOLD_PERCENT, "APIGovernor::initialize: invalid proposal threshold");
+        require(_quorumVotesPercent >= MIN_QUORUM_VOTES_PERCENT && _quorumVotesPercent <= MAX_QUORUM_VOTES_PERCENT, "APIGovernor::initialize: invalid proposal quorum");
+        require((bytes(_apiID)).length > 0,"APIGovernor::initialize: invalid api id");
+        require((bytes(_daoName)).length > 0,"APIGovernor::initialize: invalid DAO name");
 
-    modifier onlyAdmin() {
-        require(admin == msg.sender, "API DAO Governor: caller is not the Admin");
-        _;
+        timelock = TimelockInterface(_timelock);
+        apiToken = APITokenInterface(_apiToken);
+
+        votingPeriod = _votingPeriod;
+        votingDelay = _votingDelay;
+        proposalThresholdPercent = _proposalThresholdPercent;
+        quorumVotesPercent = _quorumVotesPercent;
+
+        apiProposalId = _apiProposalId;
+        isProposalExists = (bytes(_apiProposalId)).length > 0? true: false;
+        apiID = _apiID;
+        name = _daoName;
     }
 
-    struct Proposal {
-        // @notice Unique id for looking up a proposal
-        uint id;
-
-        // @notice Creator of the proposal
-        address proposer;
-
-        // @notice The timestamp that the proposal will be available for execution, set once the vote succeeds
-        uint eta;
-
-        // @notice API Details
-        APIProposalDetails apiDetails;
-
-        // @notice The block at which voting begins: holders must delegate their votes prior to this block
-        uint startBlock;
-
-        // @notice The block at which voting ends: votes must be cast prior to this block
-        uint endBlock;
-
-        // @notice Current number of votes in favor of this proposal
-        uint forVotes;
-
-        // @notice Current number of votes in opposition to this proposal
-        uint againstVotes;
-
-        // @notice Current number of votes for abstaining for this proposal
-        uint abstainVotes;
-
-        // @notice Flag marking whether the proposal has been canceled
-        bool canceled;
-
-        // @notice Flag marking whether the proposal has been executed
-        bool executed;
-
-        // @notice Receipts of ballots for the entire set of voters
-        mapping (address => Receipt) receipts;
-    }
-
-    // This needs to be change according to requirements
-    struct APIProposalDetails {
-        // @notice Title of API which is being proposed
-        string apiTitle;
-
-        // @notice Complete in depth details about the purpose of API, its usage and 
-        string description;
-    }
-
-    /// @notice Ballot receipt record for a voter
-    struct Receipt {
-        // @notice Whether or not a vote has been cast
-        bool hasVoted;
-
-        // @notice Whether or not the voter supports the proposal or abstains
-        uint8 support;
-
-        // @notice The number of votes the voter had, which were cast
-        uint256 votes;
+    // IMPORTANT
+    // https://docs.soliditylang.org/en/v0.7.0/types.html?highlight=struct#structs
+    // https://ethereum.stackexchange.com/questions/87451/solidity-error-struct-containing-a-nested-mapping-cannot-be-constructed
+    // Struct with nesting mapping is allowed only if used as storage, if we try to create
+    // Struct instance locally in function then it will not allow because of the mapping inside struct
+    function propose(address[] memory targets, uint[] memory values, string[] memory signatures, bytes[] memory calldatas, string memory description) public returns (uint) {
         
+        // Allow addresses above proposal threshold and whitelisted addresses to propose
+        //>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>.. need to correc this percent to number
+        require(apiToken.getPriorVotes(msg.sender, (block.number - 1)) > proposalThresholdPercent || isWhitelisted(msg.sender), "APIGovernor::propose: proposer votes below proposal threshold");
+        require(targets.length == values.length && targets.length == signatures.length && targets.length == calldatas.length, "APIGovernor::propose: proposal function information arity mismatch");
+        require(targets.length != 0, "APIGovernor::propose: must provide actions");
+        require(targets.length <= proposalMaxOperations, "APIGovernor::propose: too many actions");
+
+        uint latestProposalId = latestProposalIds[msg.sender];
+        if (latestProposalId != 0) {
+          ProposalState proposersLatestProposalState = state(latestProposalId);
+          require(proposersLatestProposalState != ProposalState.Active, "APIGovernor::propose: one live proposal per proposer, found an already active proposal");
+          require(proposersLatestProposalState != ProposalState.Pending, "APIGovernor::propose: one live proposal per proposer, found an already pending proposal");
+        }
+
+        uint startBlock = block.number + votingDelay;
+        uint endBlock = startBlock + votingPeriod;
+
+        proposalCount++;
+        Proposal storage newProposal = proposals[proposalCount];
+        newProposal.id = proposalCount;
+        newProposal.proposer = msg.sender;
+        newProposal.eta = 0;
+        newProposal.targets = targets;
+        newProposal.values = values;
+        newProposal.signatures = signatures;
+        newProposal.calldatas = calldatas;
+        newProposal.startBlock = startBlock;
+        newProposal.endBlock = endBlock;
+        newProposal.forVotes = 0;
+        newProposal.againstVotes = 0;
+        newProposal.abstainVotes = 0;
+        newProposal.canceled = false;
+        newProposal.executed = false;
+
+        latestProposalIds[newProposal.proposer] = newProposal.id;
+
+        emit ProposalCreated(newProposal.id, msg.sender, targets, values, signatures, calldatas, startBlock, endBlock, description);
+        return newProposal.id;
     }
 
-    /// @notice Possible states that a proposal may be in
-    enum ProposalState {
-        Pending,
-        Active,
-        Canceled,
-        Defeated,
-        Succeeded,
-        Queued,
-        Expired,
-        Executed
+    /**
+      * @notice Queues a proposal of state succeeded
+      * @param proposalId The id of the proposal to queue
+      */
+    function queue(uint proposalId) external {
+        require(state(proposalId) == ProposalState.Succeeded, "APIGovernor::queue: proposal can only be queued if it is succeeded");
+        Proposal storage proposal = proposals[proposalId];
+        uint eta = block.timestamp + timelock.delay();
+        for (uint i = 0; i < proposal.targets.length; i++) {
+            queueOrRevertInternal(proposal.targets[i], proposal.values[i], proposal.signatures[i], proposal.calldatas[i], eta);
+        }
+        proposal.eta = eta;
+        emit ProposalQueued(proposalId, eta);
     }
 
+    function queueOrRevertInternal(address target, uint value, string memory signature, bytes memory data, uint eta) internal {
+        require(!timelock.queuedTransactions(keccak256(abi.encode(target, value, signature, data, eta))), "APIGovernor::queueOrRevertInternal: identical proposal action already queued at eta");
+        timelock.queueTransaction(target, value, signature, data, eta);
+    }
 
+    /**
+      * @notice Executes a queued proposal if eta has passed
+      * @param proposalId The id of the proposal to execute
+      */
+    function execute(uint proposalId) external payable {
+        require(state(proposalId) == ProposalState.Queued, "APIGovernor::execute: proposal can only be executed if it is queued");
+        Proposal storage proposal = proposals[proposalId];
+        proposal.executed = true;
+        for (uint i = 0; i < proposal.targets.length; i++) {
+            // https://vomtom.at/solidity-0-6-4-and-call-value-curly-brackets/
+            // https://ethereum.stackexchange.com/questions/82412/using-value-is-deprecated-use-value-instead
+            timelock.executeTransaction{value:proposal.values[i]}(proposal.targets[i], proposal.values[i], proposal.signatures[i], proposal.calldatas[i], proposal.eta);
+        }
+        emit ProposalExecuted(proposalId);
+    }
 
+    /**
+      * @notice Cancels a proposal only if sender is the proposer, or proposer delegates dropped below proposal threshold
+      * @param proposalId The id of the proposal to cancel
+      */
+    function cancel(uint proposalId) external {
+        require(state(proposalId) != ProposalState.Executed, "APIGovernor::cancel: cannot cancel executed proposal");
+
+        Proposal storage proposal = proposals[proposalId];
+
+        // Proposer can cancel
+        if(msg.sender != proposal.proposer) {
+            // Whitelisted proposers can't be canceled for falling below proposal threshold
+            if(isWhitelisted(proposal.proposer)) {
+                //>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>.. need to correc this percent to number
+                require((apiToken.getPriorVotes(proposal.proposer, (block.number - 1)) < proposalThresholdPercent) && msg.sender == whitelistGuardian, "APIGovernor::cancel: whitelisted proposer");
+            }
+            else {
+                //>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>.. need to correc this percent to number
+                require((apiToken.getPriorVotes(proposal.proposer, (block.number - 1)) < proposalThresholdPercent), "APIGovernor::cancel: proposer above threshold");
+            }
+        }
+        
+        proposal.canceled = true;
+        for (uint i = 0; i < proposal.targets.length; i++) {
+            timelock.cancelTransaction(proposal.targets[i], proposal.values[i], proposal.signatures[i], proposal.calldatas[i], proposal.eta);
+        }
+
+        emit ProposalCanceled(proposalId);
+    }
+
+    /**
+      * @notice Gets actions of a proposal
+      * @param proposalId the id of the proposal
+      * @return Targets, values, signatures, and calldatas of the proposal actions
+      */
+    function getActions(uint proposalId) external view returns (address[] memory, uint[] memory, string[] memory, bytes[] memory) {
+        Proposal storage p = proposals[proposalId];
+        return (p.targets, p.values, p.signatures, p.calldatas);
+    }
+
+    /**
+      * @notice Gets the receipt for a voter on a given proposal
+      * @param proposalId the id of proposal
+      * @param voter The address of the voter
+      * @return The voting receipt
+      */
+    function getReceipt(uint proposalId, address voter) external view returns (Receipt memory) {
+        return proposals[proposalId].receipts[voter];
+    }
+
+    /**
+      * @notice Gets the state of a proposal
+      * @param proposalId The id of the proposal
+      * @return Proposal state
+      */
     function state(uint proposalId) public view returns (ProposalState) {
-        require(proposalCount >= proposalId && proposalId > 0, "Panacloud GovernorBravo::state: invalid proposal id");
+        require(proposalCount >= proposalId && proposalId > 0, "APIGovernor::state: invalid proposal id");
         Proposal storage proposal = proposals[proposalId];
         if (proposal.canceled) {
             return ProposalState.Canceled;
@@ -188,7 +245,8 @@ contract APIDao is Ownable {
             return ProposalState.Pending;
         } else if (block.number <= proposal.endBlock) {
             return ProposalState.Active;
-        } else if (proposal.forVotes <= proposal.againstVotes || proposal.forVotes < this.quorumVotesPercentage()) {
+            //>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>.. need to correc this percent to number
+        } else if (proposal.forVotes <= proposal.againstVotes || proposal.forVotes < quorumVotesPercent) {
             return ProposalState.Defeated;
         } else if (proposal.eta == 0) {
             return ProposalState.Succeeded;
@@ -201,18 +259,12 @@ contract APIDao is Ownable {
         }
     }
 
-    function getReceipt(uint proposalId, address voter) external view returns (Receipt memory) {
-        return proposals[proposalId].receipts[voter];
-    }
-
     function castVote(uint proposalId, uint8 support) external {
-        uint256 votes = castVoteInternal(msg.sender, proposalId, support);
-        emit VoteCast(msg.sender, proposalId, support, votes, "");
+        emit VoteCast(msg.sender, proposalId, support, castVoteInternal(msg.sender, proposalId, support), "");
     }
 
     function castVoteWithReason(uint proposalId, uint8 support, string calldata reason) external {
-        uint256 votes = castVoteInternal(msg.sender, proposalId, support);
-        emit VoteCast(msg.sender, proposalId, support, votes, reason);
+        emit VoteCast(msg.sender, proposalId, support, castVoteInternal(msg.sender, proposalId, support), reason);
     }
 
     function castVoteBySig(uint proposalId, uint8 support, uint8 v, bytes32 r, bytes32 s) external {
@@ -220,26 +272,24 @@ contract APIDao is Ownable {
         bytes32 structHash = keccak256(abi.encode(BALLOT_TYPEHASH, proposalId, support));
         bytes32 digest = keccak256(abi.encodePacked("\x19\x01", domainSeparator, structHash));
         address signatory = ecrecover(digest, v, r, s);
-        require(signatory != address(0), "GovernorBravo::castVoteBySig: invalid signature");
+        require(signatory != address(0), "APIGovernor::castVoteBySig: invalid signature");
         emit VoteCast(signatory, proposalId, support, castVoteInternal(signatory, proposalId, support), "");
     }
 
-    // IMPORTANT: Need to fix 6th link of this function where we need to get votes from Token
-    // For now we are using constact 100 votes
     function castVoteInternal(address voter, uint proposalId, uint8 support) internal returns (uint256) {
-        require(state(proposalId) == ProposalState.Active, "PanacloudGovernorBravo::castVoteInternal: voting is closed");
-        require(support <= 2, "PanacloudGovernorBravo::castVoteInternal: invalid vote type");
+        require(state(proposalId) == ProposalState.Active, "APIGovernor::castVoteInternal: voting is closed");
+        require(support <= 2, "APIGovernor::castVoteInternal: invalid vote type");
         Proposal storage proposal = proposals[proposalId];
         Receipt storage receipt = proposal.receipts[voter];
-        require(receipt.hasVoted == false, "PanacloudGovernorBravo::castVoteInternal: voter already voted");
-        uint256 votes = 100; //panacoin.getPriorVotes(voter, proposal.startBlock);
+        require(receipt.hasVoted == false, "APIGovernor::castVoteInternal: voter already voted");
+        uint256 votes = apiToken.getPriorVotes(voter, proposal.startBlock);
 
         if (support == 0) {
-            proposal.againstVotes = proposal.againstVotes + votes;
+            proposal.againstVotes = (proposal.againstVotes + votes);
         } else if (support == 1) {
-            proposal.forVotes = proposal.forVotes + votes;
+            proposal.forVotes = (proposal.forVotes + votes);
         } else if (support == 2) {
-            proposal.abstainVotes = proposal.abstainVotes + votes;
+            proposal.abstainVotes = (proposal.abstainVotes + votes);
         }
 
         receipt.hasVoted = true;
@@ -249,32 +299,69 @@ contract APIDao is Ownable {
         return votes;
     }
 
+    /**
+     * @notice View function which returns if an account is whitelisted
+     * @param account Account to check white list status of
+     * @return If the account is whitelisted
+     */
+    function isWhitelisted(address account) public view returns (bool) {
+        return (whitelistAccountExpirations[account] > block.timestamp);
+    }
 
-    function setVotingDelay(uint newVotingDelay) external {
-        require(msg.sender == admin, "Panacloud API GovernorBravo::setVotingDelay: admin only");
-        require(newVotingDelay >= MIN_VOTING_DELAY && newVotingDelay <= MAX_VOTING_DELAY, "API GovernorBravo::_setVotingDelay: invalid voting delay");
+    function setVotingDelay(uint newVotingDelay) external onlyAdmin {
+        require(newVotingDelay >= MIN_VOTING_DELAY && newVotingDelay <= MAX_VOTING_DELAY, "APIGovernor::setVotingDelay: invalid voting delay");
         uint oldVotingDelay = votingDelay;
         votingDelay = newVotingDelay;
 
         emit VotingDelaySet(oldVotingDelay,votingDelay);
     }
 
-    function setVotingPeriod(uint newVotingPeriod) external {
-        require(msg.sender == admin, "Panacloud API GovernorBravo::setVotingPeriod: admin only");
-        require(newVotingPeriod >= MIN_VOTING_PERIOD && newVotingPeriod <= MAX_VOTING_PERIOD, "API GovernorBravo::_setVotingPeriod: invalid voting period");
+    function setVotingPeriod(uint newVotingPeriod) external onlyAdmin {
+        require(newVotingPeriod >= MIN_VOTING_PERIOD && newVotingPeriod <= MAX_VOTING_PERIOD, "APIGovernor::setVotingPeriod: invalid voting period");
         uint oldVotingPeriod = votingPeriod;
         votingPeriod = newVotingPeriod;
 
         emit VotingPeriodSet(oldVotingPeriod, votingPeriod);
     }
 
-    function setProposalThreshold(uint newProposalThresholdPercentage) external {
-        require(msg.sender == admin, "Panacloud API GovernorBravo::setProposalThreshold: admin only");
-        require(newProposalThresholdPercentage >= MIN_PROPOSAL_THRESHOLD && newProposalThresholdPercentage <= MAX_PROPOSAL_THRESHOLD, "API GovernorBravo::_setProposalThreshold: invalid proposal threshold");
-        uint oldProposalThresholdPercentage = proposalThresholdPercentage;
-        proposalThresholdPercentage = newProposalThresholdPercentage;
+    function setProposalThreshold(uint newProposalThreshold) external onlyAdmin {
+        require(newProposalThreshold >= MIN_PROPOSAL_THRESHOLD_PERCENT && newProposalThreshold <= MAX_PROPOSAL_THRESHOLD_PERCENT, "APIGovernor::setProposalThreshold: invalid proposal threshold");
+        uint oldProposalThreshold = proposalThresholdPercent;
+        proposalThresholdPercent = newProposalThreshold;
 
-        emit ProposalThresholdSet(oldProposalThresholdPercentage, proposalThresholdPercentage);
+        emit ProposalThresholdSet(oldProposalThreshold, proposalThresholdPercent);
+    }
+
+    function setQuorumVotes(uint newQuorumVotesPercent) external onlyAdmin {
+        require(newQuorumVotesPercent >= MIN_PROPOSAL_THRESHOLD_PERCENT && newQuorumVotesPercent <= MAX_PROPOSAL_THRESHOLD_PERCENT, "APIGovernor::setQuorumVotes: invalid quorum votes");
+        uint oldQuorumVotesPercent = quorumVotesPercent;
+        quorumVotesPercent = newQuorumVotesPercent;
+
+        emit QuorumVotesSet(oldQuorumVotesPercent, quorumVotesPercent);
+    }
+
+    /**
+     * @notice Admin function for setting the whitelist expiration as a timestamp for an account. Whitelist status allows accounts to propose without meeting threshold
+     * @param account Account address to set whitelist expiration for
+     * @param expiration Expiration for account whitelist status as timestamp (if now < expiration, whitelisted)
+     */
+    function setWhitelistAccountExpiration(address account, uint expiration) external {
+        require(msg.sender == admin || msg.sender == whitelistGuardian, "APIGovernor::setWhitelistAccountExpiration: admin only");
+        whitelistAccountExpirations[account] = expiration;
+
+        emit WhitelistAccountExpirationSet(account, expiration);
+    }
+
+    /**
+     * @notice Admin function for setting the whitelistGuardian. WhitelistGuardian can cancel proposals from whitelisted addresses
+     * @param account Account to set whitelistGuardian to (0x0 to remove whitelistGuardian)
+     */
+    function setWhitelistGuardian(address account) external onlyAdmin {
+        //require(msg.sender == admin, "PanaGovernor::setWhitelistGuardian: admin only");
+        address oldGuardian = whitelistGuardian;
+        whitelistGuardian = account;
+
+        emit WhitelistGuardianSet(oldGuardian, whitelistGuardian);
     }
 
     /**
@@ -282,9 +369,9 @@ contract APIDao is Ownable {
       * @dev Admin function to begin change of admin. The newPendingAdmin must call `_acceptAdmin` to finalize the transfer.
       * @param newPendingAdmin New pending admin.
       */
-    function setPendingAdmin(address newPendingAdmin) external {
+    function setPendingAdmin(address newPendingAdmin) external onlyAdmin {
         // Check caller = admin
-        require(msg.sender == admin, "Panacloud API GovernorBravo::setPendingAdmin: admin only");
+        //require(msg.sender == admin, "PanaGovernor:setPendingAdmin: admin only");
 
         // Save current value, if any, for inclusion in log
         address oldPendingAdmin = pendingAdmin;
@@ -302,7 +389,7 @@ contract APIDao is Ownable {
       */
     function acceptAdmin() external {
         // Check caller is pendingAdmin and pendingAdmin ≠ address(0)
-        require(msg.sender == pendingAdmin && msg.sender != address(0), "Panacloud API GovernorBravo::acceptAdmin: pending admin only");
+        require(msg.sender == pendingAdmin && msg.sender != address(0), "APIGovernor:acceptAdmin: pending admin only");
 
         // Save current values for inclusion in log
         address oldAdmin = admin;
@@ -317,11 +404,10 @@ contract APIDao is Ownable {
         emit NewAdmin(oldAdmin, admin);
         emit NewPendingAdmin(oldPendingAdmin, pendingAdmin);
     }
-
+    
     function getChainIdInternal() internal view returns (uint) {
         uint chainId;
         assembly { chainId := chainid() }
         return chainId;
     }
-
 } 

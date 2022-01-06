@@ -112,7 +112,7 @@ contract APIGovernorCore {
         /// @notice The number of votes the voter had, which were cast
         uint256 votes;
     }
-0
+    
     /// @notice Possible states that a proposal may be in
     enum ProposalState {
         Pending,
