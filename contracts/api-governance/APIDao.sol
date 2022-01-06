@@ -42,6 +42,10 @@ contract APIDao is APIGovernorCore, GovernorEvents, Ownable {
     // @notice The EIP-712 typehash for the ballot struct used by the contract
     bytes32 public constant BALLOT_TYPEHASH = keccak256("Ballot(uint256 proposalId,uint8 support)");
 
+    /// @notice An event emitted when a new proposal is created
+    /// Overloaded from existing event and added Votes Needed property
+    event ProposalCreated(uint id, address proposer, address[] targets, uint[] values, string[] signatures, bytes[] calldatas, uint startBlock, uint endBlock, uint votesNeeded, string description);
+
     /// @notice Emitted when quorum votes is set
     event QuorumVotesSet(uint oldQuorumVotesPercent, uint newQuorumVotesPercent);
 
@@ -135,12 +139,14 @@ contract APIDao is APIGovernorCore, GovernorEvents, Ownable {
         newProposal.forVotes = 0;
         newProposal.againstVotes = 0;
         newProposal.abstainVotes = 0;
+        newProposal.thresholdAtStart = getVotesFromPercentOfTokenSupply(proposalThresholdPercent);
+        newProposal.votesNeeded = getVotesFromPercentOfTokenSupply(quorumVotesPercent);
         newProposal.canceled = false;
         newProposal.executed = false;
 
         latestProposalIds[newProposal.proposer] = newProposal.id;
 
-        emit ProposalCreated(newProposal.id, msg.sender, targets, values, signatures, calldatas, startBlock, endBlock, description);
+        emit ProposalCreated(newProposal.id, msg.sender, targets, values, signatures, calldatas, startBlock, endBlock,newProposal.votesNeeded, description);
         return newProposal.id;
     }
 
@@ -193,10 +199,10 @@ contract APIDao is APIGovernorCore, GovernorEvents, Ownable {
         if(msg.sender != proposal.proposer) {
             // Whitelisted proposers can't be canceled for falling below proposal threshold
             if(isWhitelisted(proposal.proposer)) {
-                require((apiToken.getPriorVotes(proposal.proposer, (block.number - 1)) < getVotesFromPercentOfTokenSupply(proposalThresholdPercent)) && msg.sender == whitelistGuardian, "APIGovernor::cancel: whitelisted proposer");
+                require((apiToken.getPriorVotes(proposal.proposer, (block.number - 1)) < proposal.thresholdAtStart) && msg.sender == whitelistGuardian, "APIGovernor::cancel: whitelisted proposer");
             }
             else {
-                require((apiToken.getPriorVotes(proposal.proposer, (block.number - 1)) < getVotesFromPercentOfTokenSupply(proposalThresholdPercent)), "APIGovernor::cancel: proposer above threshold");
+                require((apiToken.getPriorVotes(proposal.proposer, (block.number - 1)) < proposal.thresholdAtStart), "APIGovernor::cancel: proposer above threshold");
             }
         }
         
@@ -242,8 +248,7 @@ contract APIDao is APIGovernorCore, GovernorEvents, Ownable {
             return ProposalState.Pending;
         } else if (block.number <= proposal.endBlock) {
             return ProposalState.Active;
-            //>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>.. need to correct this percent to number
-        } else if (proposal.forVotes <= proposal.againstVotes || proposal.forVotes < getVotesFromPercentOfTokenSupply(quorumVotesPercent)) {
+        } else if (proposal.forVotes <= proposal.againstVotes || proposal.forVotes < proposal.votesNeeded) {
             return ProposalState.Defeated;
         } else if (proposal.eta == 0) {
             return ProposalState.Succeeded;

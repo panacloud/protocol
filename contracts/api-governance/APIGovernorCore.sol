@@ -99,6 +99,12 @@ contract APIGovernorCore {
 
         /// @notice Receipts of ballots for the entire set of voters
         mapping (address => Receipt) receipts;
+
+        /// @notice Threshold of Token votes at start of proposal
+        uint thresholdAtStart;
+
+        /// @notice Number of Tokens needed to pass vote at start of Proposal
+        uint votesNeeded;
     }
 
     /// @notice Ballot receipt record for a voter
@@ -112,7 +118,7 @@ contract APIGovernorCore {
         /// @notice The number of votes the voter had, which were cast
         uint256 votes;
     }
-    
+
     /// @notice Possible states that a proposal may be in
     enum ProposalState {
         Pending,
