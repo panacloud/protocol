@@ -68,8 +68,9 @@ contract PanaFactory is Ownable  {
                                                             platfrom.apiIdeaProposerShare(),
                                                             platfrom.paymentSplitterAddress());
         
+        APIGovernorTimelock apiTimelock = new APIGovernorTimelock(msg.sender, 1 days);
         // Need to fix msg.sender -- as DAO's owner will be DAO factory, which is incorrect
-        address apiDaoAddress = daoFactory.createAPIDao(apiDAOConfig, apiTokenAddress);
+        address apiDaoAddress = daoFactory.createAPIDao(address(apiTimelock), apiDAOConfig, apiTokenAddress);
         
         platfrom.apiDAOCreated(msg.sender, apiDAOConfig.apiId, address(apiTokenAddress), address(apiDaoAddress));
         

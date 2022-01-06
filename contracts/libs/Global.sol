@@ -9,9 +9,9 @@ library Global {
         //string apiTitle;
         //string apiType;
         string daoName;
-        uint256 votingSupportPercentage;
-        uint256 votingMinimumApprovalPercentage;
-        uint256 voteDuration;
+        uint256 proposalThresholdPercent; //votingMinimumApprovalPercentage;
+        uint256 quorumVotesPercent; //votingSupportPercentage;
+        uint256 votingPeriod; //voteDuration;
     }
 
     struct APITokenConfig {
