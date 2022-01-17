@@ -6,6 +6,7 @@ import "./PanacloudPlatform.sol";
 import "./utils/DAOFactory.sol";
 import "./utils/APITokenFactory.sol";
 import "./libs/Global.sol";
+import "./api-governance/APIGovernorTimelock.sol";
 
 // Need to decide if we really need a factory or not
 // creating a smart contract for factory will cost us
@@ -68,7 +69,7 @@ contract PanaFactory is Ownable  {
                                                             platfrom.apiIdeaProposerShare(),
                                                             platfrom.paymentSplitterAddress());
         
-        APIGovernorTimelock apiTimelock = new APIGovernorTimelock(msg.sender, 1 days);
+        APIGovernorTimelock apiTimelock = new APIGovernorTimelock(msg.sender, 2 days);
         // Need to fix msg.sender -- as DAO's owner will be DAO factory, which is incorrect
         address apiDaoAddress = daoFactory.createAPIDao(address(apiTimelock), apiDAOConfig, apiTokenAddress);
         
