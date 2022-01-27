@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.4.22 <0.9.0;
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "hardhat/console.sol";
 
 contract PanacloudPlatform is Ownable {
@@ -39,19 +40,14 @@ contract PanacloudPlatform is Ownable {
     
     mapping(address => APIDevDetails) private apiDevDetails;
 
-    // Mapping for developer to list of owned DAOs
-    // key:develper address, value: Dao Address array
-    //mapping(address => address[]) private ownedDAOs;
-
-    // Mapping for developer to list of owned Tokens
-    // key:develper address, value: Dao Address array
-    //mapping(address => address[]) private ownedTokens;
-
     // Mapping for developer to list of owned Dao and Tokens
     // key:develper address, value: Array of struct holding Dao and Token address
     mapping(address => UserDAODetails[]) ownedDAOs;
 
     address public paymentSplitterAddress;
+
+    ERC20 public DAI;
+    address public treasuryAddress;
 
     event APIDAOCreated(address daoCreator, string apiId, address apiToken, address apiDao);
 
@@ -59,8 +55,10 @@ contract PanacloudPlatform is Ownable {
         console.log("Platform Launched");
     }
 
-    function initialize(address _paymentSplitterAddress) public onlyOwner {
+    function initialize(address _paymentSplitterAddress, address _daiAddress, address _treasuryAddress) public onlyOwner {
         paymentSplitterAddress = _paymentSplitterAddress;
+        DAI = ERC20(_daiAddress);
+        treasuryAddress = _treasuryAddress;
     }
 
     function setPanacloudAPIShare(uint256 newShare) public onlyOwner {
@@ -95,10 +93,14 @@ contract PanacloudPlatform is Ownable {
         require(_invoice.apiToken != address(0), "API Token NULL Address Provided");
         require(_invoice.invoicePayee != address(0), "NULL Payee Address Provided");
         require(_invoice.totalAmount > 0, "Zero Amount Invoice");
-        APIDevDetails storage _devDetails = apiDevDetails[_apiDev];
+        
+        // TODO: need to transfer funds to treasure address
+        DAI.transferFrom(msg.sender, address(this), _invoice.totalAmount);
 
-        _devDetails.totalEarned += _invoice.totalAmount;
-        _devDetails.totalClaimable += _invoice.totalAmount;
+        APIDevDetails storage _devDetails = apiDevDetails[_apiDev];
+        uint256 devShare = _invoice.totalAmount * panacloudShareInAPI / 100;
+        _devDetails.totalEarned += devShare;
+        _devDetails.totalClaimable += devShare;
         _devDetails.invoices[_invoice.apiToken].push(_invoice);
         _devDetails.payeeInvoices[msg.sender].push(_invoice);
     }
@@ -113,5 +115,4 @@ contract PanacloudPlatform is Ownable {
         require(apiDevDetails[_apiDev].apiDev != address(0), "Invalid Dev Address");
         return apiDevDetails[_apiDev].invoices[_apiToken];
     }
-
 }
