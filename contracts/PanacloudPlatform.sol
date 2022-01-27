@@ -77,7 +77,7 @@ contract PanacloudPlatform is Ownable {
 
     function apiDAOCreated(address owner, string memory apiId, address apiToken, address apiDao) public {
         apiDAOToUserMapping[apiDao] = owner;
-        ownedDAOs[owner].push(UserDAODetails(apiToken, apiDao));
+        ownedDAOs[owner].push(UserDAODetails(apiDao,apiToken));
         APIDevDetails storage _devDetails = apiDevDetails[owner];
         if(_devDetails.apiDev == address(0)) {
             _devDetails.apiDev = owner;

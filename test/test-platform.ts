@@ -53,14 +53,30 @@ describe("Panacloud Platform Test", function () {
         })).to.be.ok;
     });
 
-    it("Test API Dev Details", async function () {
+    it("API Dev Earing and Details properly updated", async function () {
         const [owner, addr1]: SignerWithAddress[] = await ethers.getSigners();
         const devEarningDetails = await panacloudPlatform.getDevEarnings(owner.address);
-        console.log("Earning details = ",devEarningDetails);
+        //console.log("Earning details = ",devEarningDetails);
         expect(devEarningDetails[0].toNumber()).to.be.equal(400);
         expect(devEarningDetails[1].toNumber()).to.be.equal(400);
         expect(devEarningDetails[2].toNumber()).to.be.equal(0);
-        //expect(devEarningDetails[0].toNumber()).to.be.equal(400);
+        expect(devEarningDetails[3][0].apiDao).to.be.equal(apiDAOAddress);
+        expect(devEarningDetails[3][0].apiToken).to.be.equal(apiTokenAddress);
+    });
+
+    it("API Invoices properly updated for user", async function () {
+        const [owner, addr1]: SignerWithAddress[] = await ethers.getSigners();
+        const invoices = await panacloudPlatform.getAPIInvoices(owner.address,apiTokenAddress);
+        //console.log("Earning details = ",devEarningDetails);
+        expect(invoices.length).to.be.equal(2);
+        expect(invoices[0].apiToken).to.be.equal(apiTokenAddress);
+        expect(invoices[0].totalAmount).to.be.equal(300);
+        expect(invoices[0].invoiceMonth).to.be.equal(1);
+
+        expect(invoices[1].apiToken).to.be.equal(apiTokenAddress);
+        expect(invoices[1].totalAmount).to.be.equal(100);
+        expect(invoices[1].invoiceMonth).to.be.equal(2);
+
     });
 
 });
