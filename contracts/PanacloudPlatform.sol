@@ -10,11 +10,34 @@ contract PanacloudPlatform is Ownable {
         address apiToken;
     }
 
+    struct Invoice {
+        address apiToken;
+        uint256 invoiceNumber;
+        uint256 dueDate;
+        uint256 invoiceMonth;
+        uint256 totalAmount;
+        address invoicePayee;
+    }
+
+    struct APIDevDetails {
+        address apiDev;
+        uint256 totalEarned;
+        uint256 totalClaimable;
+        uint256 totalClaimed;
+        // key: apiToken , value invoices of apiToken
+        mapping(address => Invoice[]) invoices;
+        mapping(address => Invoice[]) payeeInvoices;
+        // key: userAddress ,  key apiToken value invoices of apiToken
+        //mapping(address=> mapping(address=>Invoice[])) userAPIInvoices;
+    }
+    
     uint256 public panacloudShareInAPI = 5;
     uint256 public apiIdeaProposerShare = 1;
 
     // Key DAO address value Developer address
     mapping(address => address) private apiDAOToUserMapping;
+    
+    mapping(address => APIDevDetails) private apiDevDetails;
 
     // Mapping for developer to list of owned DAOs
     // key:develper address, value: Dao Address array
@@ -55,11 +78,40 @@ contract PanacloudPlatform is Ownable {
     function apiDAOCreated(address owner, string memory apiId, address apiToken, address apiDao) public {
         apiDAOToUserMapping[apiDao] = owner;
         ownedDAOs[owner].push(UserDAODetails(apiToken, apiDao));
+        APIDevDetails storage _devDetails = apiDevDetails[owner];
+        if(_devDetails.apiDev == address(0)) {
+            _devDetails.apiDev = owner;
+        }
         emit APIDAOCreated(owner, apiId, apiDao, apiToken);
     }
 
     function getDAOAndTokenForOwner(address owner) public view returns (UserDAODetails[] memory userAllDAOs){
         return ownedDAOs[owner];
+    }
+
+    function payInvoice(address _apiDev, address _apiDao, Invoice memory _invoice) public {
+        require(apiDAOToUserMapping[_apiDao] == _apiDev, "DAO does not belong to user");
+        require(_apiDev != address(0), "API Dev NULL Address Provided");
+        require(_invoice.apiToken != address(0), "API Token NULL Address Provided");
+        require(_invoice.invoicePayee != address(0), "NULL Payee Address Provided");
+        require(_invoice.totalAmount > 0, "Zero Amount Invoice");
+        APIDevDetails storage _devDetails = apiDevDetails[_apiDev];
+
+        _devDetails.totalEarned += _invoice.totalAmount;
+        _devDetails.totalClaimable += _invoice.totalAmount;
+        _devDetails.invoices[_invoice.apiToken].push(_invoice);
+        _devDetails.payeeInvoices[msg.sender].push(_invoice);
+    }
+
+    function getDevEarnings(address _apiDev) public view returns(uint256,uint256,uint256,UserDAODetails[] memory) {
+        require(apiDevDetails[_apiDev].apiDev != address(0), "Invalid Dev Address");
+        APIDevDetails storage _devDetails = apiDevDetails[_apiDev];
+        return (_devDetails.totalEarned,_devDetails.totalClaimable,_devDetails.totalClaimed, ownedDAOs[_apiDev] );
+    }
+
+    function getAPIInvoices(address _apiDev,address _apiToken) public view returns(Invoice[] memory) {
+        require(apiDevDetails[_apiDev].apiDev != address(0), "Invalid Dev Address");
+        return apiDevDetails[_apiDev].invoices[_apiToken];
     }
 
 }
