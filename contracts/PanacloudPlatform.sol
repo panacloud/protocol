@@ -98,7 +98,7 @@ contract PanacloudPlatform is Ownable {
         DAI.transferFrom(msg.sender, address(this), _invoice.totalAmount);
 
         APIDevDetails storage _devDetails = apiDevDetails[_apiDev];
-        uint256 devShare = _invoice.totalAmount * panacloudShareInAPI / 100;
+        uint256 devShare = _invoice.totalAmount - (_invoice.totalAmount * panacloudShareInAPI / 100);
         _devDetails.totalEarned += devShare;
         _devDetails.totalClaimable += devShare;
         _devDetails.invoices[_invoice.apiToken].push(_invoice);
