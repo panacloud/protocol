@@ -32,7 +32,7 @@ describe("Panacloud Platform Test", function () {
 
         await panacloudPlatform.initialize(addr5.address,daiToken.address,owner.address);
 
-        await daiToken.mint(addr1.address,10000);
+        await daiToken.mint(addr1.address, ethers.utils.parseEther("10000"));
 
         // This is just for dummy testing, in actual we need contract addresses
         apiTokenAddress = addr3.address;
@@ -52,14 +52,14 @@ describe("Panacloud Platform Test", function () {
         const addr1DaiBalance = await daiToken.balanceOf(addr1.address);
         //console.log("addr1DaiBalance = ",addr1DaiBalance.toNumber());
 
-        expect(await daiToken.connect(addr1).approve(panacloudPlatform.address,400)).to.be.ok;
+        expect(await daiToken.connect(addr1).approve(panacloudPlatform.address, ethers.utils.parseEther("400"))).to.be.ok;
 
         expect(await panacloudPlatform.connect(addr1).payInvoice(owner.address, apiDAOAddress,{
             apiToken: apiTokenAddress,
             dueDate: Date.now(),
             invoiceMonth: 1,
             invoiceNumber:123,
-            totalAmount: 300,
+            totalAmount: ethers.utils.parseEther("300"),
             invoicePayee: owner.address
         })).to.be.ok;
 
@@ -68,7 +68,7 @@ describe("Panacloud Platform Test", function () {
             dueDate: Date.now(),
             invoiceMonth: 2,
             invoiceNumber:321,
-            totalAmount: 100,
+            totalAmount: ethers.utils.parseEther("100"),
             invoicePayee: owner.address
         })).to.be.ok;
     });
@@ -77,9 +77,9 @@ describe("Panacloud Platform Test", function () {
         const [owner, addr1]: SignerWithAddress[] = await ethers.getSigners();
         const devEarningDetails = await panacloudPlatform.getDevEarnings(owner.address);
         //console.log("Earning details = ",devEarningDetails);
-        expect(devEarningDetails[0].toNumber()).to.be.equal(380);
-        expect(devEarningDetails[1].toNumber()).to.be.equal(380);
-        expect(devEarningDetails[2].toNumber()).to.be.equal(0);
+        expect(devEarningDetails[0].toString()).to.be.equal(ethers.utils.parseEther("380"));
+        expect(devEarningDetails[1].toString()).to.be.equal(ethers.utils.parseEther("380"));
+        expect(devEarningDetails[2].toString()).to.be.equal(ethers.utils.parseEther("0"));
         expect(devEarningDetails[3][0].apiDao).to.be.equal(apiDAOAddress);
         expect(devEarningDetails[3][0].apiToken).to.be.equal(apiTokenAddress);
     });
@@ -90,13 +90,24 @@ describe("Panacloud Platform Test", function () {
         //console.log("Earning details = ",devEarningDetails);
         expect(invoices.length).to.be.equal(2);
         expect(invoices[0].apiToken).to.be.equal(apiTokenAddress);
-        expect(invoices[0].totalAmount).to.be.equal(300);
+        expect(invoices[0].totalAmount).to.be.equal(ethers.utils.parseEther("300"));
         expect(invoices[0].invoiceMonth).to.be.equal(1);
 
         expect(invoices[1].apiToken).to.be.equal(apiTokenAddress);
-        expect(invoices[1].totalAmount).to.be.equal(100);
+        expect(invoices[1].totalAmount).to.be.equal(ethers.utils.parseEther("100"));
         expect(invoices[1].invoiceMonth).to.be.equal(2);
+    });
 
+    it("Withdraw should fail when called by Non-Owner account", async function () {
+        const [owner, addr1]: SignerWithAddress[] = await ethers.getSigners();
+        await expect(panacloudPlatform.connect(addr1).withdraw()).to.be.revertedWith("Ownable: caller is not the owner");
+    });
+
+    it("Withdraw should transfer DAI to owner account", async function () {
+        const [owner, addr1]: SignerWithAddress[] = await ethers.getSigners();
+        expect(await  panacloudPlatform.connect(owner).withdraw()).to.be.ok;
+        const ownerDaiBalance = await daiToken.balanceOf(owner.address);
+        console.log("Owner Dai Balance = ",ownerDaiBalance.toString());
     });
 
 });

@@ -50,6 +50,7 @@ contract PanacloudPlatform is Ownable {
     address public treasuryAddress;
 
     event APIDAOCreated(address daoCreator, string apiId, address apiToken, address apiDao);
+    event InvoicePaid(address daoCreator, address invoicePayee, address apiToken, address apiDao, uint256 invoiceNumber, uint256 invoiceAmount);
 
     constructor() {
         console.log("Platform Launched");
@@ -103,6 +104,7 @@ contract PanacloudPlatform is Ownable {
         _devDetails.totalClaimable += devShare;
         _devDetails.invoices[_invoice.apiToken].push(_invoice);
         _devDetails.payeeInvoices[msg.sender].push(_invoice);
+        emit InvoicePaid(_apiDev, msg.sender, _invoice.apiToken, _apiDao, _invoice.invoiceNumber, _invoice.totalAmount);
     }
 
     function getDevEarnings(address _apiDev) public view returns(uint256,uint256,uint256,UserDAODetails[] memory) {
@@ -115,4 +117,15 @@ contract PanacloudPlatform is Ownable {
         require(apiDevDetails[_apiDev].apiDev != address(0), "Invalid Dev Address");
         return apiDevDetails[_apiDev].invoices[_apiToken];
     }
+
+    /*
+    function withdraw() public onlyOwner {
+        (bool sent, bytes memory data) = treasuryAddress.call{value: address(this).balance}("");
+        require(sent, "Failed to withdraw Ether");
+    }*/
+
+    function withdraw() public onlyOwner {
+        DAI.transfer(msg.sender, DAI.balanceOf(address(this)));
+    }
+
 }
