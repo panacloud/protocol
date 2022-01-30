@@ -1,12 +1,20 @@
 import { ContractReceipt, ContractTransaction } from '@ethersproject/contracts';
 import { BigNumber } from 'ethers';
-import { ethers, run } from 'hardhat';
+import { ethers, run, network } from 'hardhat';
 import { APINFT, APINFT__factory, APITokenFactory, APITokenFactory__factory, DAOFactory, DAOFactory__factory, PanacloudController, PanacloudController__factory, PanacloudPlatform, PanacloudPlatform__factory, PanaCoin, PanaCoin__factory, PanaFactory, PanaFactory__factory, PaymentSplitter, PaymentSplitter__factory, PlatformGovernor, PlatformGovernor__factory, Timelock, Timelock__factory } from '../typechain';
+const deployedAddresses = require("../deployment/addresses.json");
 
+// DAI rinkeby address
+// 0x5592ec0cfb4dbc12d3ab100b257153436a1f0fea
+
+// DAI Mainnet address
+// 0x6b175474e89094c44da98b954eedeac495271d0f
 async function main() {
 
   const [owner] = await ethers.getSigners();
-
+  const networkName = network.name; 
+  console.log("Network = ",networkName);
+  const daiTokenAddress = deployedAddresses[networkName].daiToken;
   //#region  Factories
   const APITokenFactory:APITokenFactory__factory = await ethers.getContractFactory("APITokenFactory");
   const apiTokenFactory:APITokenFactory = await APITokenFactory.deploy();
@@ -39,7 +47,7 @@ async function main() {
   const panacloudPlatform:PanacloudPlatform = await PanacloudPlatform.deploy();
   await panacloudPlatform.deployed();
   console.log("PanacloudPlatform deployed to:", panacloudPlatform.address);
-  const txt1:ContractTransaction = await panacloudPlatform.initialize(paymentSplitter.address);
+  const txt1:ContractTransaction = await panacloudPlatform.initialize(paymentSplitter.address,daiTokenAddress,owner.address);
   //const txt1:ContractTransaction = await panacloudPlatform.initialize("0xd88Ab12f329C3e5dBaD1092b7E4710a7C3B2731C");
   console.log("PanacloudPlatform.initialize transaction hash:", txt1.hash);
   const txtReceipt1:ContractReceipt = await txt1.wait();
