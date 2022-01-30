@@ -1,13 +1,26 @@
 {
     "rinkeby": {
-        "apiTokenFactory":"0x4A9f9dA711BE2BCEd5B68a912805aac204d32Fb4",
-        "daoFactory":"0x7ac3F75aC4Fc0974bfDe5f4BF4899F008309FEc8",
-        "paymentSplitter":"0xc074Adb47c27F9529f14406865A77e417F22F391",
-        "panaCoin":"0x0389e643c316E500865931fC1e1b1c0b4Cb0ab83",
-        "apiNFT":"0x914eC4Eb42E4f496Cc13D249A6de60Dd60E2cdb9",
-        "panacloudPlatform":"0xbe45422C159358A0Eb71712416826F69EE7678E3",
-        "panaFactory":"0x46BADfdE470edf148B17562BCB687C3DDB77BF04",
-        "timelock":"0x5Ea85E49396783d0c754f071A78bb500798e9205",
-        "platformGoverner":"0xDd4bc242CE3CCf5fDeec0A0b56eD4C7C7DCc8Cad"
+        "daiToken": "0x5592ec0cfb4dbc12d3ab100b257153436a1f0fea",
+        "apiTokenFactory":"0x35853Efd936d996bD0f1485340D53F5838bF60B1",
+        "daoFactory":"0x3877E6FCF042b7d4BD13f8Fd79B892198A5f0A7F",
+        "paymentSplitter":"0x2635EE8339E5d2674AB5E05D41aA51d3dE8B9fdA",
+        "panaCoin":"0x9BF9Ec601DAC0edF95DDa8cdD71DD37926fAA5E7",
+        "apiNFT":"0x4Fdff477E47A6f3eb5Bd7B399041c7A47680BB8A",
+        "panacloudPlatform":"0xcDB8942c029E850da5CD4802bf5fC71395C46085",
+        "panaFactory":"0x9f64e17F5B95fD415cFB6CE60AA7651b3adFEd3d",
+        "timelock":"0x1F288eB0b2b11AB319d9Ee03FEaF047fF4ab7238",
+        "platformGoverner":"0x0F02aFD9Cd56758F68279EaF09Ff57c687CC0843"
+    },
+    "localhost": {
+        "daiToken": "0x5592ec0cfb4dbc12d3ab100b257153436a1f0fea",
+        "apiTokenFactory":"0x5FbDB2315678afecb367f032d93F642f64180aa3",
+        "daoFactory":"0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512",
+        "paymentSplitter":"0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0",
+        "panaCoin":"0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9",
+        "apiNFT":"0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9",
+        "panacloudPlatform":"0x5FC8d32690cc91D4c39d9d3abcBD16989F875707",
+        "panaFactory":"0xa513E6E4b8f2a923D98304ec87F64353C4D5C853",
+        "timelock":"0x8A791620dd6260079BF849Dc5567aDC3F2FdC318",
+        "platformGoverner":"0x610178dA211FEF7D417bC0e6FeD39F05609AD788"
     }
 }

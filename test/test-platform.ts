@@ -10,6 +10,14 @@ import { BigNumber } from "@ethersproject/bignumber";
 
 // DAI Mainnet address
 // 0x6b175474e89094c44da98b954eedeac495271d0f
+interface Invoice {
+    apiToken: string; // API Token Address
+    invoiceNumber: BigNumber;
+    dueDate: BigNumber;
+    invoiceMonth: BigNumber; // From 1 to 12
+    totalAmount: BigNumber;
+    invoicePayee: string; // API Subscriber Address
+  }
 
 describe("Panacloud Platform Test", function () {
     
@@ -86,8 +94,8 @@ describe("Panacloud Platform Test", function () {
 
     it("API Invoices properly updated for user", async function () {
         const [owner, addr1]: SignerWithAddress[] = await ethers.getSigners();
-        const invoices = await panacloudPlatform.getAPIInvoices(owner.address,apiTokenAddress);
-        //console.log("Earning details = ",devEarningDetails);
+        const invoices:Invoice[] = await panacloudPlatform.getAPIInvoices(owner.address,apiTokenAddress);
+        console.log("invoices = ",invoices);
         expect(invoices.length).to.be.equal(2);
         expect(invoices[0].apiToken).to.be.equal(apiTokenAddress);
         expect(invoices[0].totalAmount).to.be.equal(ethers.utils.parseEther("300"));
@@ -107,7 +115,8 @@ describe("Panacloud Platform Test", function () {
         const [owner, addr1]: SignerWithAddress[] = await ethers.getSigners();
         expect(await  panacloudPlatform.connect(owner).withdraw()).to.be.ok;
         const ownerDaiBalance = await daiToken.balanceOf(owner.address);
-        console.log("Owner Dai Balance = ",ownerDaiBalance.toString());
+        //console.log("Owner Dai Balance = ",ownerDaiBalance.toString());
+        expect(ownerDaiBalance).to.be.equal(ethers.utils.parseEther("10400"));
     });
 
 });
