@@ -31,9 +31,16 @@ contract PanacloudPlatform is Ownable {
         // key: userAddress ,  key apiToken value invoices of apiToken
         //mapping(address=> mapping(address=>Invoice[])) userAPIInvoices;
     }
-    
+
+    struct Claim {
+        address apiDev;
+        uint256 claimedAmount;
+        uint256 timestamp;
+    }
+
     uint256 public panacloudShareInAPI = 5;
     uint256 public apiIdeaProposerShare = 1;
+    uint256 public panacloudBalance;
 
     // Key DAO address value Developer address
     mapping(address => address) private apiDAOToUserMapping;
@@ -44,6 +51,8 @@ contract PanacloudPlatform is Ownable {
     // key:develper address, value: Array of struct holding Dao and Token address
     mapping(address => UserDAODetails[]) ownedDAOs;
 
+    mapping(address => Claim[]) apiDevClaims;
+
     address public paymentSplitterAddress;
 
     ERC20 public DAI;
@@ -51,6 +60,7 @@ contract PanacloudPlatform is Ownable {
 
     event APIDAOCreated(address daoCreator, string apiId, address apiToken, address apiDao);
     event InvoicePaid(address daoCreator, address invoicePayee, address apiToken, address apiDao, uint256 invoiceNumber, uint256 invoiceAmount);
+    event Claimed(address apiDev, uint256 claimedAmount, uint256 timestamp);
 
     constructor() {
         console.log("Platform Launched");
@@ -100,6 +110,7 @@ contract PanacloudPlatform is Ownable {
 
         APIDevDetails storage _devDetails = apiDevDetails[_apiDev];
         uint256 devShare = _invoice.totalAmount - (_invoice.totalAmount * panacloudShareInAPI / 100);
+        panacloudBalance = _invoice.totalAmount - devShare;
         _devDetails.totalEarned += devShare;
         _devDetails.totalClaimable += devShare;
         _devDetails.invoices[_invoice.apiToken].push(_invoice);
@@ -118,6 +129,19 @@ contract PanacloudPlatform is Ownable {
         return apiDevDetails[_apiDev].invoices[_apiToken];
     }
 
+    function claimEarnings(uint256 _claimAmount) public returns (bool){
+        require(apiDevDetails[msg.sender].apiDev != address(0), "Invalid Dev Address");
+        require(apiDevDetails[msg.sender].totalClaimable >= _claimAmount, "Incorrect Claimable Amount");
+        apiDevClaims[msg.sender].push(Claim(msg.sender,_claimAmount,block.timestamp));
+        apiDevDetails[msg.sender].totalClaimable-= _claimAmount;
+        apiDevDetails[msg.sender].totalClaimed+= _claimAmount;
+        return DAI.transfer(msg.sender, _claimAmount);
+    }
+
+    function getClaimHistory() public view returns (Claim[] memory){
+        return apiDevClaims[msg.sender];
+    }
+
     /*
     function withdraw() public onlyOwner {
         (bool sent, bytes memory data) = treasuryAddress.call{value: address(this).balance}("");
@@ -125,7 +149,8 @@ contract PanacloudPlatform is Ownable {
     }*/
 
     function withdraw() public onlyOwner {
-        DAI.transfer(msg.sender, DAI.balanceOf(address(this)));
+        //DAI.transfer(msg.sender, DAI.balanceOf(address(this)));
+        DAI.transfer(msg.sender, panacloudBalance);
     }
 
 }
