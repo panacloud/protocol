@@ -95,7 +95,7 @@ describe("Panacloud Platform Test", function () {
     it("API Invoices properly updated for user", async function () {
         const [owner, addr1]: SignerWithAddress[] = await ethers.getSigners();
         const invoices:Invoice[] = await panacloudPlatform.getAPIInvoices(owner.address,apiTokenAddress);
-        console.log("invoices = ",invoices);
+        //console.log("invoices = ",invoices);
         expect(invoices.length).to.be.equal(2);
         expect(invoices[0].apiToken).to.be.equal(apiTokenAddress);
         expect(invoices[0].totalAmount).to.be.equal(ethers.utils.parseEther("300"));
@@ -106,17 +106,47 @@ describe("Panacloud Platform Test", function () {
         expect(invoices[1].invoiceMonth).to.be.equal(2);
     });
 
+    it("API Developer claim earnings should fail because trying to claim more than available", async function () {
+        const [owner, addr1]: SignerWithAddress[] = await ethers.getSigners();
+
+        const claimFunds = ethers.utils.parseEther("381");
+        await expect(panacloudPlatform.claimEarnings(claimFunds)).to.be.revertedWith("Incorrect Claimable Amount");
+    });
+
+    it("API Developer can claim earnings", async function () {
+        const [owner, addr1]: SignerWithAddress[] = await ethers.getSigners();
+
+        const ownerDaiBalanceBefore = await daiToken.balanceOf(owner.address);
+        const claimFunds = ethers.utils.parseEther("380");
+        expect(await panacloudPlatform.claimEarnings(claimFunds)).to.be.ok;
+        const ownerDaiBalanceAfter = await daiToken.balanceOf(owner.address);
+    
+        expect(ownerDaiBalanceAfter).to.be.equal(ownerDaiBalanceBefore.add(claimFunds));
+
+        const devEarningDetails = await panacloudPlatform.getDevEarnings(owner.address);
+        expect(devEarningDetails[0].toString()).to.be.equal(ethers.utils.parseEther("380"));
+        expect(devEarningDetails[1].toString()).to.be.equal(ethers.utils.parseEther("0"));
+        expect(devEarningDetails[2].toString()).to.be.equal(ethers.utils.parseEther("380"));
+    });
+
+
     it("Withdraw should fail when called by Non-Owner account", async function () {
         const [owner, addr1]: SignerWithAddress[] = await ethers.getSigners();
         await expect(panacloudPlatform.connect(addr1).withdraw()).to.be.revertedWith("Ownable: caller is not the owner");
     });
 
-    it("Withdraw should transfer DAI to owner account", async function () {
+    it("Withdraw should transfer DAI to Protocol owner", async function () {
         const [owner, addr1]: SignerWithAddress[] = await ethers.getSigners();
+
+        const ownerDaiBalanceBefore = await daiToken.balanceOf(owner.address);
+        const protocolBalance = await panacloudPlatform.panacloudBalance();
         expect(await  panacloudPlatform.connect(owner).withdraw()).to.be.ok;
-        const ownerDaiBalance = await daiToken.balanceOf(owner.address);
-        //console.log("Owner Dai Balance = ",ownerDaiBalance.toString());
-        expect(ownerDaiBalance).to.be.equal(ethers.utils.parseEther("10400"));
+        const ownerDaiBalanceAfter = await daiToken.balanceOf(owner.address);
+        
+        //console.log("Owner Dai Balance before = ",ownerDaiBalanceBefore.toString());
+        //console.log("Owner Dai Balance after = ",ownerDaiBalanceAfter.toString());
+        expect(ownerDaiBalanceAfter).to.be.equal(ownerDaiBalanceBefore.add(protocolBalance));
+
     });
 
 });
