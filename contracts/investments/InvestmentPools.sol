@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.4.22 <0.9.0;
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "../libs/Global.sol";
 
 // Central Point for all the contract to initialize
 contract InvestmentPools is Ownable  {
@@ -14,47 +15,17 @@ contract InvestmentPools is Ownable  {
 
     uint256 public poolCounter;
 
-    struct MilestoneClaim {
-        uint256 claimedAmount;
-        uint256 approvedTimestamp;
-        uint256 claimedTimestamp;
-    }
-
-    struct PoolInfo {
-        uint256 poolIndex;
-        
-        uint256 startDate;
-        uint256 duration;
-        uint256 tokenPrice;
-        uint256 tokensToBeIssued;
-        uint256 minimumInvestmentRequired;
-        uint256 tokenPerInvestor;
-        
-        address apiToken;
-        address apiDev;
-        bool poolFundingSuccessfull;
-        bool poolActive;        
-
-        uint256 totalFundApproved;
-        uint256 fundsAvailableFromClaim;
-        uint256 fundsClaimed;
-
-        MilestoneClaim[] milestoneClaims;
-
-    }
-
     // key: API Token address, value: PoolInfo
-    mapping(address => PoolInfo) public apiInvestmentPool;
+    mapping(address => Global.PoolInfo) public apiInvestmentPool;
     // key: User wallet address, value: Array of PoolInfo
-    mapping(address => PoolInfo[]) public userInvestmentPools;
+    mapping(address => Global.PoolInfo[]) public userInvestmentPools;
     // List of All Pools
-    PoolInfo[] public poolList;
+    Global.PoolInfo[] public poolList;
 
     uint256 private totalFundsApproved;
     uint256 private totalFundsAvailable;
 
     constructor() {
-
     }
 
     function fundingManager() public view returns (address) {
@@ -68,9 +39,9 @@ contract InvestmentPools is Ownable  {
     function createInvestmentPool(address apiDev, address apiToken, uint256 startDate, 
                                 uint256 duration, uint256 tokenPrice, uint256 tokensToBeIssued, 
                                 uint256 minimumInvestmentRequired, uint256 tokenPerInvestor) 
-                                public onlyOwnerOrManager {
+                                public  {
         require(apiToken != address(0), "NULL API Token Address Provided");
-        PoolInfo storage _poolInfo = apiInvestmentPool[apiToken];
+        Global.PoolInfo storage _poolInfo = apiInvestmentPool[apiToken];
         _poolInfo.poolIndex = poolCounter;
         _poolInfo.apiToken = apiToken;
         _poolInfo.apiDev = apiDev;
@@ -86,12 +57,18 @@ contract InvestmentPools is Ownable  {
 
         userInvestmentPools[apiDev].push(_poolInfo);
 
-        poolList[poolCounter]= _poolInfo;
+        poolList[poolCounter] = _poolInfo;
+        poolCounter++;
     }
 
     function createPaymentMilestoneClaim(address apiToken, uint256 amountToBeReleased) public onlyOwnerOrManager {
-        PoolInfo storage _poolInfo = apiInvestmentPool[apiToken];
-        _poolInfo.milestoneClaims.push(MilestoneClaim(amountToBeReleased,block.timestamp, 0));
+        Global.PoolInfo storage _poolInfo = apiInvestmentPool[apiToken];
+        _poolInfo.milestoneClaims.push(Global.MilestoneClaim(amountToBeReleased,block.timestamp, 0));
+
+    }
+
+    function getInvestmentPool(address _apiToken) public view returns (Global.PoolInfo memory) {
+        return apiInvestmentPool[_apiToken];
     }
 
 }
