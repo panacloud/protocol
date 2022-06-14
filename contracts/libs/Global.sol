@@ -23,4 +23,35 @@ library Global {
         uint256 apiInvestorSharePercentage;
         uint256 thresholdForSubscriberMinting; // Still needs to see what it will do
     }
+
+    // For Investment Pools
+    struct MilestoneClaim {
+        uint256 claimedAmount;
+        uint256 approvedTimestamp;
+        uint256 claimedTimestamp;
+    }
+
+    // For Investment Pools
+    struct PoolInfo {
+        uint256 poolIndex;
+        
+        uint256 startDate;
+        uint256 duration;
+        uint256 tokenPrice;
+        uint256 tokensToBeIssued;
+        uint256 minimumInvestmentRequired;
+        uint256 tokenPerInvestor;
+        
+        address apiToken;
+        address apiDev;
+        bool poolFundingSuccessfull;
+        bool poolActive;      
+
+        uint256 totalFundApproved;
+        uint256 fundsAvailableFromClaim;
+        uint256 fundsClaimed;
+
+        MilestoneClaim[] milestoneClaims;
+
+    }
 }
