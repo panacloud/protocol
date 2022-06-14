@@ -1,7 +1,7 @@
 import { ContractReceipt, ContractTransaction } from '@ethersproject/contracts';
 import { BigNumber } from 'ethers';
 import { ethers, run, network } from 'hardhat';
-import { APINFT, APINFT__factory, APITokenFactory, APITokenFactory__factory, DAOFactory, DAOFactory__factory, PanacloudController, PanacloudController__factory, PanacloudPlatform, PanacloudPlatform__factory, PanaCoin, PanaCoin__factory, PanaFactory, PanaFactory__factory, PaymentSplitter, PaymentSplitter__factory, PlatformGovernor, PlatformGovernor__factory, Timelock, Timelock__factory } from '../typechain';
+import { APINFT, APINFT__factory, APITokenFactory, APITokenFactory__factory, DAOFactory, DAOFactory__factory, InvestmentPools, InvestmentPoolsManager, InvestmentPoolsManager__factory, InvestmentPools__factory, PanacloudController, PanacloudController__factory, PanacloudPlatform, PanacloudPlatform__factory, PanaCoin, PanaCoin__factory, PanaFactory, PanaFactory__factory, PaymentSplitter, PaymentSplitter__factory, PlatformGovernor, PlatformGovernor__factory, Timelock, Timelock__factory } from '../typechain';
 const deployedAddresses = require("../deployment/addresses.json");
 
 // DAI rinkeby address
@@ -88,6 +88,21 @@ async function main() {
   const txtReceipt3:ContractReceipt = await txt3.wait();
   console.log("PlatformGovernor.initialize transaction completed");
   
+
+  const InvestmentPools:InvestmentPools__factory = await ethers.getContractFactory("InvestmentPools");
+  const investmentPools:InvestmentPools = await InvestmentPools.deploy();
+  await investmentPools.deployed();
+  console.log("InvestmentPools deployed to:", investmentPools.address);
+
+  const InvestmentPoolsManager:InvestmentPoolsManager__factory = await ethers.getContractFactory("InvestmentPoolsManager");
+  const investmentPoolsManager:InvestmentPoolsManager = await InvestmentPoolsManager.deploy();
+  await investmentPoolsManager.deployed();
+  console.log("InvestmentPoolsManager deployed to:", investmentPoolsManager.address);
+
+  const txt4:ContractTransaction = await investmentPoolsManager.initialize(investmentPools.address, panaCoin.address);
+  console.log("InvestmentPoolsManager.initialize transaction hash:", txt4.hash);
+  const txtReceipt4:ContractReceipt = await txt4.wait();
+  console.log("InvestmentPoolsManager.initialize transaction completed");
 
   /*
   // Not needed for now
