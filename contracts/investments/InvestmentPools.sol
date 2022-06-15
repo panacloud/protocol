@@ -57,7 +57,7 @@ contract InvestmentPools is Ownable  {
 
         userInvestmentPools[apiDev].push(_poolInfo);
 
-        poolList[poolCounter] = _poolInfo;
+        poolList.push(_poolInfo);
         poolCounter++;
     }
 

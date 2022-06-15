@@ -1,17 +1,17 @@
 {
     "rinkeby": {
         "daiToken": "0x5592ec0cfb4dbc12d3ab100b257153436a1f0fea",
-        "apiTokenFactory":"0x675c258Ce2dD42A65c3F6082fC4223adEEbb0E14",
-        "daoFactory":"0x9562CAF91C61a38dC1FcbaB6f5e19CCF68c5bb8a",
-        "paymentSplitter":"0x103019aFAe30c567DA0C692CfbF484de54A5F8e0",
-        "panaCoin":"0xcD026a97226Ef59D52a47e37e723E1b4B9a9CF58",
-        "apiNFT":"0x26f66a50b929D9992132B488ce183046789236F5",
-        "panacloudPlatform":"0x3409e69446396EC4261F21A64DAF6CD8Ba53DdF0",
-        "panaFactory":"0xB9A5572875D15ce686522dbf01484cFC66056299",
-        "timelock":"0x432527c445883695D3c6E45e54a6CC0Bef56b2a7",
-        "platformGoverner":"0x4aa8D5cCeAc2eE32C3b0C06Dc7589CD286e7e020",
-        "investmentPools":"0x5cb7392339b0834fEe5e03Bcd799CAcc327C3Cb0",
-        "investmentPoolsManager":" 0x2b96e4893857CD09821D1E588b4A0a9E6b12E221"
+        "apiTokenFactory":"0xe7DC6623E2564eD3a81d047A23a45Dbe0b74a31B",
+        "daoFactory":"0x360b5A461E985d32Db9d2AaEfc3474Af2938f4d6",
+        "paymentSplitter":"0x05889648F62fEDcB3124827679f6e8a34b90C65c",
+        "panaCoin":"0x100Fb0000a84356E964Bb59Dac742d0C35F42389",
+        "apiNFT":"0x27557d88A5f5849a180194988Cf2091b1D956fbd",
+        "panacloudPlatform":"0x1d8199F217EB923280E7Ed45304bD5028B5678E7",
+        "panaFactory":"0x6837cBd683233bD1d838480A366A2a84DDB3B617",
+        "timelock":"0x9D43551807f0D2b07730aE8e5243B8B7b005912a",
+        "platformGoverner":"0x4dEd2c35d81D9eF33fb37B1be3CF356cBe139B71",
+        "investmentPools":"0xa5aE646cc992b90D835e8F0b892fFf1834Aaa3d1",
+        "investmentPoolsManager":"0x16F4E3D86a5DDFEdC6064f2aC7e733F848cbEE14"
     },
     "localhost": {
         "daiToken": "0x5592ec0cfb4dbc12d3ab100b257153436a1f0fea",
@@ -24,7 +24,7 @@
         "panaFactory":"0xa513E6E4b8f2a923D98304ec87F64353C4D5C853",
         "timelock":"0x8A791620dd6260079BF849Dc5567aDC3F2FdC318",
         "platformGoverner":"0x610178dA211FEF7D417bC0e6FeD39F05609AD788",
-        "investmentPools":"0x5cb7392339b0834fEe5e03Bcd799CAcc327C3Cb0",
-        "investmentPoolsManager":" 0x2b96e4893857CD09821D1E588b4A0a9E6b12E221"
+        "investmentPools":"0xA51c1fc2f0D1a1b8494Ed1FE312d7C3a78Ed91C0",
+        "investmentPoolsManager":"0x0DCd1Bf9A1b36cE34237eEaFef220932846BCD82"
     }
 }
