@@ -15,6 +15,7 @@ async function main() {
   const networkName = network.name; 
   console.log("Network = ",networkName);
   const daiTokenAddress = deployedAddresses[networkName].daiToken;
+
   //#region  Factories
   const APITokenFactory:APITokenFactory__factory = await ethers.getContractFactory("APITokenFactory");
   const apiTokenFactory:APITokenFactory = await APITokenFactory.deploy();
@@ -77,6 +78,7 @@ async function main() {
   console.log("Timelock.setPendingAdmin transaction completed");
   */
 
+  
   const PlatformGovernor:PlatformGovernor__factory = await ethers.getContractFactory("PlatformGovernor");
   const platformGovernor:PlatformGovernor = await PlatformGovernor.deploy();
   await platformGovernor.deployed();
