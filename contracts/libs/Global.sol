@@ -41,7 +41,7 @@ library Global {
         uint256 tokensToBeIssued;
         uint256 minimumInvestmentRequired;
         uint256 tokenPerInvestor;
-        
+
         address apiToken;
         address apiDev;
         bool poolFundingSuccessfull;
@@ -53,5 +53,20 @@ library Global {
 
         MilestoneClaim[] milestoneClaims;
 
+    }
+
+    struct WhitelistCriteria {
+        uint256 poolIndex;
+        address apiToken;
+        uint256 whitelistingStartDate;
+        uint256 whitelistingEndDate;
+    }
+
+    struct AllowedUser {
+        address investor;
+        uint256 investedTokenAmount;
+        uint256 claimableTokenAmount;
+        uint256 status; //1=Applied, 2=Pre-Selected, 3=KYC Open, 4=Allowlisted, 5=Unlucky, 6=Cooldown Period
+        
     }
 }
