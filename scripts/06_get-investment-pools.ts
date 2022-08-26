@@ -20,6 +20,9 @@ async function main() {
 
   const poolInfo1 = await investmentPools.poolList(0);
   console.log("investmentPools.poolInfo1 = ",poolInfo1);
+  const whitelistCriteria = await investmentPools.getWhitelistCriteria(poolInfo1.apiToken);
+  console.log("investmentPools.getWhitelistCriteria = ",whitelistCriteria.toString());
+  
   const poolInfo2 = await investmentPools.poolList(1);
   console.log("investmentPools.poolInfo2 = ",poolInfo2);
   //const poolInfo3 = await investmentPools.poolList(3);
