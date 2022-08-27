@@ -7,7 +7,7 @@ import "../governance/PanaCoin.sol";
 import "../libs/Global.sol";
 import "hardhat/console.sol";
 
-// Central Point for all the contract to initialize
+//TODO: This contract will be removed
 contract InvestmentPoolsManager is Ownable  {
 
     InvestmentPools public investmentPools;
@@ -17,6 +17,9 @@ contract InvestmentPoolsManager is Ownable  {
     // Key: API Token, Value: investor address list 
     mapping(address => mapping(address=>bool)) whitelisters;
     //mapping(address => )
+
+    // Key: API Token, Value: Fund collected 
+    mapping(address => uint256) fundsCollectedForPools;
 
     event AppliedForInvestmentPool(address apiToken, address userAddress);
     event InvestedInPool(address apiToken, uint256 investmentAmount, address userAddress);
@@ -32,17 +35,17 @@ contract InvestmentPoolsManager is Ownable  {
         console.log("after availableBalance = ",availableBalance);
         require(availableBalance >= amountForWhitelisting, "Required Balance not available");
         Global.PoolInfo memory _poolInfo = investmentPools.getInvestmentPool(_apiToken);
-        Global.WhitelistCriteria memory _whitelistCriteria = investmentPools.getWhitelistCriteria(_apiToken);
+        Global.PoolInvestmentDetails memory _poolInvestmentDetail = investmentPools.getPoolInvestmentDetails(_apiToken);
         console.log("Global.PoolInfo.apiToken = ",_poolInfo.apiToken);
         console.log("Global.PoolInfo.apiDev = ",_poolInfo.apiDev);
         console.log("Global.PoolInfo.startDate = ",_poolInfo.startDate);
         console.log("Global.PoolInfo.tokensToBeIssued = ",_poolInfo.tokensToBeIssued);
         
-        console.log("Global.WhitelistCriteria.whitelistingStartDate = ",_whitelistCriteria.whitelistingStartDate);
-        console.log("Global.WhitelistCriteria.whitelistingEndDate = ",_whitelistCriteria.whitelistingEndDate);
+        console.log("Global.WhitelistCriteria.whitelistingStartDate = ",_poolInvestmentDetail.whitelistingStartDate);
+        console.log("Global.WhitelistCriteria.whitelistingEndDate = ",_poolInvestmentDetail.whitelistingEndDate);
         console.log("block.timestamp = ",block.timestamp);
 
-        require(block.timestamp >= _whitelistCriteria.whitelistingStartDate && block.timestamp<= _whitelistCriteria.whitelistingEndDate, "Whitelisting start and end time not match");
+        require(block.timestamp >= _poolInvestmentDetail.whitelistingStartDate && block.timestamp<= _poolInvestmentDetail.whitelistingEndDate, "Whitelisting start and end time not match");
         require(_poolInfo.apiToken == _apiToken, "Pool Not found");
         whitelisters[_apiToken][msg.sender] = true;
         emit AppliedForInvestmentPool(_apiToken, msg.sender);
@@ -55,9 +58,17 @@ contract InvestmentPoolsManager is Ownable  {
     function investInPool(address _apiToken, uint256 _investmentAmount) public {
         require(whitelisters[_apiToken][msg.sender], "Not Whitelisted");
         uint256 allowance = panaCoin.allowance(msg.sender, address(this));
-        //Global.PoolInfo memory _poolInfo = investmentPools.getInvestmentPool(_apiToken);
-        //require(allowance >= (price * tokenQuantity),"Insufficient approval for funds");
         require(allowance >= _investmentAmount,"Insufficient approval for funds");
+        
+        Global.PoolInfo memory _poolInfo = investmentPools.getInvestmentPool(_apiToken);
+        Global.PoolInvestmentDetails memory _poolInvestmentDetail = investmentPools.getPoolInvestmentDetails(_apiToken);
+
+        require(allowance >= _poolInfo.minimumInvestmentRequired,"Insufficient Investment Sent");
+
+        uint256 tokenQuantity = allowance / _poolInfo.tokenPrice;
+        require( (tokenQuantity + _poolInvestmentDetail.tokenIssued)  <= _poolInfo.tokensToBeIssued,"Insufficient Investment Sent");
+        //require(allowance >= (price * tokenQuantity),"Insufficient approval for funds");
+
         panaCoin.transferFrom(msg.sender, address(this), _investmentAmount);
         emit InvestedInPool(_apiToken, _investmentAmount, msg.sender);
     }

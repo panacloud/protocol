@@ -44,7 +44,7 @@ library Global {
 
         address apiToken;
         address apiDev;
-        bool poolFundingSuccessfull;
+        uint256 poolFundingStatus; //1=In Progress, 2=Successfull, 3=Failed 
         bool poolActive;      
 
         uint256 totalFundApproved;
@@ -55,11 +55,18 @@ library Global {
 
     }
 
-    struct WhitelistCriteria {
+    struct PoolInvestmentDetails {
         uint256 poolIndex;
         address apiToken;
+
         uint256 whitelistingStartDate;
         uint256 whitelistingEndDate;
+        
+        uint256 fundCollected;
+        uint256 tokenIssued;
+
+        bool fundingFailed;
+
     }
 
     struct AllowedUser {
