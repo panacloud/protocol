@@ -96,6 +96,13 @@ async function main() {
   await investmentPools.deployed();
   console.log("InvestmentPools deployed to:", investmentPools.address);
 
+  const txt4:ContractTransaction = await investmentPools.initialize(panaCoin.address);
+  console.log("InvestmentPools.initialize transaction hash:", txt4.hash);
+  const txtReceipt4:ContractReceipt = await txt4.wait();
+  console.log("InvestmentPools.initialize transaction completed");
+
+  /*
+  // Discontinued IvestmentPoolManager
   const InvestmentPoolsManager:InvestmentPoolsManager__factory = await ethers.getContractFactory("InvestmentPoolsManager");
   const investmentPoolsManager:InvestmentPoolsManager = await InvestmentPoolsManager.deploy();
   await investmentPoolsManager.deployed();
@@ -105,6 +112,7 @@ async function main() {
   console.log("InvestmentPoolsManager.initialize transaction hash:", txt4.hash);
   const txtReceipt4:ContractReceipt = await txt4.wait();
   console.log("InvestmentPoolsManager.initialize transaction completed");
+  */
 
   /*
   // Not needed for now
