@@ -1,16 +1,16 @@
 {
     "rinkeby": {
         "daiToken": "0x5592ec0cfb4dbc12d3ab100b257153436a1f0fea",
-        "apiTokenFactory":"0x2909a3e37f2ed4910570C7fAC2eC61dBB5c22404",
-        "daoFactory":"0xb8229Df0bb27E45d6976EB24a6EdD1d8284969d3",
-        "paymentSplitter":"0xC89f6BDEB2A90E83348eC83Fc0f5309e1d2D7Bd6",
-        "panaCoin":"0x4CF5871F758B8823eB7dDaB645893d56E1f7B8C3",
-        "apiNFT":"0xA79685963AACDa1afdf60b5dE04a327F6Bf5f31E",
-        "panacloudPlatform":"0xc677cF8F2462C19c26079ed72589fa31915078ac",
-        "panaFactory":"0x96c71eB7834240cc2fce351D89e9a00620FF69De",
-        "timelock":"0xb6710Fff5512186E4952BdC90AAE052e7a067E5E",
-        "platformGoverner":"0xaDD3FeD2db77c52e086634A65705b0F8262D19a8",
-        "investmentPools":"0x3B9bbe88cF8951b40bE8f2A1Bdc008F26021fC0d",
+        "apiTokenFactory":"0x884D7593fFa0fb06F355B317FA4eE5fF44D8fDbC",
+        "daoFactory":"0x185FdF49ae7a8E45ef245ee83b72e5E780CcBEa3",
+        "paymentSplitter":"0x1F393AD8dA846e2488FF94e3330325B3cc4b6dc7",
+        "panaCoin":"0xD62C1A8f79Dac8998Ddf9dD8856Ea93E36BD98C0",
+        "apiNFT":"0xe8D6be161a6c73068b64090Aa96578Ad363c35F7",
+        "panacloudPlatform":"0x75F94f1c60a2fBdD8AEF8F62B14267db2D541229",
+        "panaFactory":"0x8aD97bC24eAAf59Db2930835252959bb1b932e95",
+        "timelock":"0xB64743670CA5AA4701Df1377F34AA8d7D81Fc445",
+        "platformGoverner":"0x1D97d2512b94331bdD27d3bE7bBA2f5029CCe24F",
+        "investmentPools":"0xFCd122B2881424ef6bB187359B4c4ABDb81E7599",
         "investmentPoolsManager":"0xCD7F39E2e076Da03a30E5491ebFffA2aa2b73655"
     },
     "localhost": {
