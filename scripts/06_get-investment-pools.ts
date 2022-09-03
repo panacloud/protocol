@@ -19,12 +19,20 @@ async function main() {
   console.log("investmentPools.poolcounter = ",poolcounter.toString());
 
   const poolInfo1 = await investmentPools.poolList(0);
-  console.log("investmentPools.poolInfo1 = ",poolInfo1);
-  const whitelistCriteria = await investmentPools.getWhitelistCriteria(poolInfo1.apiToken);
-  console.log("investmentPools.getWhitelistCriteria = ",whitelistCriteria.toString());
+  //console.log("investmentPools.poolInfo1 = ",poolInfo1);
+
+  //const investmentPool = await investmentPools.getInvestmentPool(poolInfo1.apiToken);
+  const investmentPool = await investmentPools.getInvestmentPool("0x703A5f09EccBC1E02E0B1FA739A7E5A5e698340C");
+  console.log("investmentPool = ",investmentPool.toString());
   
+  //const investmentPoolDetails = await investmentPools.getPoolInvestmentDetails(poolInfo1.apiToken);
+  const investmentPoolDetails = await investmentPools.getPoolInvestmentDetails("0x703A5f09EccBC1E02E0B1FA739A7E5A5e698340C");
+  console.log("investmentPoolDetails = ",investmentPoolDetails.toString());
+  
+
   const poolInfo2 = await investmentPools.poolList(1);
-  console.log("investmentPools.poolInfo2 = ",poolInfo2);
+  //console.log("investmentPools.poolInfo2 = ",poolInfo2);
+  
   //const poolInfo3 = await investmentPools.poolList(3);
   //console.log("investmentPools.poolInfo3 = ",poolInfo3);
 }
