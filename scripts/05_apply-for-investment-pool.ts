@@ -12,15 +12,22 @@ async function main() {
   console.log("Network = ",networkName);
   
   
-  const InvestmentPoolsManager:InvestmentPoolsManager__factory = await ethers.getContractFactory("InvestmentPoolsManager");
-  const investmentPoolsManager:InvestmentPoolsManager = await InvestmentPoolsManager.attach(deployedAddresses[networkName].investmentPoolsManager);
-  console.log("InvestmentPoolsManager Address to:", investmentPoolsManager.address);
+  const InvestmentPools:InvestmentPools__factory = await ethers.getContractFactory("InvestmentPools");
+  const investmentPools:InvestmentPools = await InvestmentPools.attach(deployedAddresses[networkName].investmentPools);
+  console.log("InvestmentPools Address to:", investmentPools.address);
 
-  const txt1 = await investmentPoolsManager.applyForInvestmentPool("0xa16E02E87b7454126E5E10d957A927A7F5B5d2be");
+  const blockNumBefore = await ethers.provider.getBlockNumber();
+  const blockBefore = await ethers.provider.getBlock(blockNumBefore);
+  const timestampBefore = blockBefore.timestamp;
+  console.log("blockNumBefore = ", blockNumBefore);
+  console.log("blockBefore = ", blockBefore);
+  console.log("timestamp = ", timestampBefore);
 
-  console.log("investmentPools.createInvestmentPool Hash: ",txt1.hash);
+  const txt1 = await investmentPools.applyForInvestmentPool("0x703A5f09EccBC1E02E0B1FA739A7E5A5e698340C");
+
+  console.log("investmentPools.applyForInvestmentPool Hash: ",txt1.hash);
   const txtReceipt = await txt1.wait();
-  console.log("investmentPools transaction receipt: ",txtReceipt);
+  console.log("investmentPools.applyForInvestmentPool transaction receipt: ",txtReceipt);
   
   /*
   const blockNumBefore = await ethers.provider.getBlockNumber();
