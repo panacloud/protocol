@@ -22,8 +22,12 @@ contract InvestmentPools is Ownable  {
     // key: API Token address, value: PoolInvestmentDetails
     mapping(address => Global.PoolInvestmentDetails) public poolInvestmentDetails;
 
-    // Key: API Token, Value: investor address and investment amount mapping
-    mapping(address => mapping (address => uint256)) apiInvestorAmount;
+    // Key: API Token, Value: mapping Key: investor address Value: InvestoryDetails
+    mapping(address => mapping (address => Global.InvestorDetails)) apiInvestors;
+
+    // Key: User wallet address, Value: API Token list
+    // It is related to apiInvestor property
+    mapping(address => address[]) userInvestedAPITokenList;
 
     // Key: API Token, Value: Fund collected -- need to see if its needed 
     mapping(address => uint256) fundsCollectedForPools;
@@ -135,22 +139,39 @@ contract InvestmentPools is Ownable  {
         uint256 allowance = panaCoin.allowance(msg.sender, address(this));
         require(allowance >= _investmentAmount,"Insufficient approval for funds");
         
-        Global.PoolInfo memory _poolInfo = apiInvestmentPool[_apiToken];
-        Global.PoolInvestmentDetails memory _poolInvestmentDetail = poolInvestmentDetails[_apiToken];
+        Global.PoolInfo storage _poolInfo = apiInvestmentPool[_apiToken];
+        Global.PoolInvestmentDetails storage _poolInvestmentDetail = poolInvestmentDetails[_apiToken];
 
         require(allowance >= _poolInfo.minimumInvestmentRequired,"Insufficient Investment Sent");
 
         uint256 tokenQuantity = allowance / _poolInfo.tokenPrice;
         require( (tokenQuantity + _poolInvestmentDetail.tokenIssued)  <= _poolInfo.tokensToBeIssued,"Will exceed the total tokens allowed");
-        require( (tokenQuantity + apiInvestorAmount[_apiToken][msg.sender])  <= _poolInfo.tokenPerInvestor,"Per Investor token limit will exceed");
+        require( (tokenQuantity + apiInvestors[_apiToken][msg.sender].claimableToken)  <= _poolInfo.tokenPerInvestor,"Per Investor token limit will exceed");
 
         panaCoin.transferFrom(msg.sender, address(this), _investmentAmount);
         _poolInvestmentDetail.fundCollected += _investmentAmount;
         _poolInvestmentDetail.tokenIssued += tokenQuantity;
-        apiInvestorAmount[_apiToken][msg.sender]+=tokenQuantity;
+        //poolInvestmentDetails[_apiToken].fundCollected += _investmentAmount;
+        //poolInvestmentDetails[_apiToken].tokenIssued += tokenQuantity;
+        Global.InvestorDetails storage _investorDetails = apiInvestors[_apiToken][msg.sender];
+        console.log("InvestorDetails.investor = ",_investorDetails.investor);
+        console.log("InvestorDetails.apiToken = ",_investorDetails.apiToken);
+        console.log("InvestorDetails.investedAmount = ",_investorDetails.investedAmount);
+        console.log("InvestorDetails.claimableToken = ",_investorDetails.claimableToken);
+        if(_investorDetails.apiToken == _apiToken) {
+            console.log("In if  _investorDetails.apiToken == _apiToken");
+            _investorDetails.investedAmount += _investmentAmount;
+            _investorDetails.claimableToken += tokenQuantity;
+        }
+        else {
+            console.log("In else  _investorDetails.apiToken == _apiToken");
+            apiInvestors[_apiToken][msg.sender] = Global.InvestorDetails(msg.sender,_apiToken,_investmentAmount,tokenQuantity,0,0,0);
+            userInvestedAPITokenList[msg.sender].push(_apiToken);
+        }
         totalFundsAvailable += _investmentAmount;
         if(_poolInfo.tokensToBeIssued == _poolInvestmentDetail.tokenIssued) {
             _poolInfo.poolFundingStatus = 2;
+            //apiInvestmentPool[_apiToken].poolFundingStatus = 2;
         }
 
         emit InvestedInPool(_apiToken, _investmentAmount, msg.sender);
@@ -168,20 +189,54 @@ contract InvestmentPools is Ownable  {
         return poolList;
     }
 
-    function updatetPoolFundingStatus (address _apiToken, uint256 poolFundingStatus) public onlyOwner {
+    function updatetPoolFundingStatus (address _apiToken, uint256 poolFundingStatus) public onlyOwnerOrManager {
         require(poolFundingStatus >=1 && poolFundingStatus <=3, "Incorrect Status provided");
         apiInvestmentPool[_apiToken].poolFundingStatus = poolFundingStatus;
     }
 
-    function togglePoolActiveStatus (address _apiToken) public onlyOwner {
+    function togglePoolActiveStatus (address _apiToken) public onlyOwnerOrManager {
         apiInvestmentPool[_apiToken].poolActive = !apiInvestmentPool[_apiToken].poolActive;
     }
 
     function claimFunds(address _apiToken) public {
         require(apiInvestmentPool[_apiToken].poolFundingStatus == 3, "Pool status is not failed");
-        uint256 claimableFunds = apiInvestorAmount[_apiToken][msg.sender];
+        uint256 claimableFunds = apiInvestors[_apiToken][msg.sender].investedAmount;
         require(claimableFunds > 0, "No Funds to claim");
         panaCoin.transfer(msg.sender, claimableFunds);
+        apiInvestors[_apiToken][msg.sender].investedAmount = 0;
+        apiInvestors[_apiToken][msg.sender].amountClaimed = claimableFunds;
+    }
+
+    function getInvestorDetailForAPIToken(address _apiToken, address investor) public view returns(Global.InvestorDetails memory){
+        return apiInvestors[_apiToken][investor];
+    }
+
+    function getInvestorPoolList(address investor) public view returns(Global.PoolInfo[] memory){
+        address[] memory apiTokenAddressList = userInvestedAPITokenList[investor];
+        console.log("investor = ",investor);
+        console.log("userInvestedAPITokenList[investor].length = ",userInvestedAPITokenList[investor].length);
+        console.log("apiTokenAddressList.length = ",apiTokenAddressList.length);
+        Global.PoolInfo[] memory _poolInfoList = new Global.PoolInfo[](apiTokenAddressList.length);
+        for (uint256 index = 0; index < apiTokenAddressList.length; index++) {
+            console.log("index = ",index);
+            console.log("apiTokenAddressList[index] = ",apiTokenAddressList[index]);
+            console.log("apiInvestmentPool[apiTokenAddressList[index]].apiToken = ",apiInvestmentPool[apiTokenAddressList[index]].apiToken);
+            _poolInfoList[index] = apiInvestmentPool[apiTokenAddressList[index]];
+            console.log("after pool info list data");
+        }
+        return _poolInfoList;
+    }
+
+    
+    function claimYourAPIToken(address _apiToken) public {
+        require(apiInvestmentPool[_apiToken].poolFundingStatus == 2, "Pool status not Successful");
+        require(apiInvestors[_apiToken][msg.sender].apiToken != address(0), "No investment in this pool");
+        Global.InvestorDetails storage _investorDetails = apiInvestors[_apiToken][msg.sender];
+        
+        // API token transfer to msg.sender
+        
+        //panaCoin.transfer(msg.sender, _investorDetails.);
+
     }
 
     function withdraw() public onlyOwner {

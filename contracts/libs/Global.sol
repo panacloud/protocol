@@ -69,6 +69,20 @@ library Global {
 
     }
 
+    struct InvestorDetails {
+        address investor;
+        address apiToken;
+        uint256 investedAmount;
+        uint256 claimableToken;
+
+        uint256 claimedBlockNumber; // This will works in case of both failure and success
+        //In case of failure
+        uint256 amountClaimed;
+
+        //In case of success
+        uint256 tokensClaimed;
+    }
+
     struct AllowedUser {
         address investor;
         uint256 investedTokenAmount;
