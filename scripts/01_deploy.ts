@@ -54,12 +54,16 @@ async function main() {
   const txtReceipt1:ContractReceipt = await txt1.wait();
   console.log("PanacloudPlatform.initialize transaction completed");
 
+  const InvestmentPools:InvestmentPools__factory = await ethers.getContractFactory("InvestmentPools");
+  const investmentPools:InvestmentPools = await InvestmentPools.deploy();
+  await investmentPools.deployed();
+  console.log("InvestmentPools deployed to:", investmentPools.address);
 
   const PanaFactory:PanaFactory__factory = await ethers.getContractFactory("PanaFactory");
   const panaFactory:PanaFactory = await PanaFactory.deploy();
   await panaFactory.deployed();
   console.log("PanaFactory deployed to:", panaFactory.address);
-  const txt2:ContractTransaction = await panaFactory.initialize(panaCoin.address, apiNFT.address, panacloudPlatform.address, apiTokenFactory.address, daoFactory.address);
+  const txt2:ContractTransaction = await panaFactory.initialize(panaCoin.address, apiNFT.address, panacloudPlatform.address, apiTokenFactory.address, daoFactory.address, investmentPools.address);
   //const txt2:ContractTransaction = await panaFactory.initialize("0xFda643aE677a2155795a9e3154C691d9Df18237d", "0x6825755326cF5cc3BB432b0A05060f3dA2D7eCa7", panacloudPlatform.address, "0x18630eC22859f7E7725513b1CEcCa7df2dB764B6", "0x4E9b5f6B43d5A497BB3Eb45a1474694Da1761Ac2");
   console.log("panaFactory.initialize transaction hash:", txt2.hash);
   const txtReceipt2:ContractReceipt = await txt2.wait();
@@ -91,12 +95,8 @@ async function main() {
   console.log("PlatformGovernor.initialize transaction completed");
   
 
-  const InvestmentPools:InvestmentPools__factory = await ethers.getContractFactory("InvestmentPools");
-  const investmentPools:InvestmentPools = await InvestmentPools.deploy();
-  await investmentPools.deployed();
-  console.log("InvestmentPools deployed to:", investmentPools.address);
-
-  const txt4:ContractTransaction = await investmentPools.initialize(panaCoin.address);
+  // Investment Pool initialized above at line number 57
+  const txt4:ContractTransaction = await investmentPools.initialize(panaCoin.address, panaFactory.address);
   console.log("InvestmentPools.initialize transaction hash:", txt4.hash);
   const txtReceipt4:ContractReceipt = await txt4.wait();
   console.log("InvestmentPools.initialize transaction completed");
