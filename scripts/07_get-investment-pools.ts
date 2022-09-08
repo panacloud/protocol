@@ -22,15 +22,15 @@ async function main() {
   //console.log("investmentPools.poolInfo1 = ",poolInfo1);
 
   //const investmentPool = await investmentPools.getInvestmentPool(poolInfo1.apiToken);
-  const investmentPool = await investmentPools.getInvestmentPool("0x703A5f09EccBC1E02E0B1FA739A7E5A5e698340C");
+  const investmentPool = await investmentPools.getInvestmentPool("0x94099942864EA81cCF197E9D71ac53310b1468D8");
   console.log("investmentPool = ",investmentPool.toString());
   
   //const investmentPoolDetails = await investmentPools.getPoolInvestmentDetails(poolInfo1.apiToken);
-  const investmentPoolDetails = await investmentPools.getPoolInvestmentDetails("0x703A5f09EccBC1E02E0B1FA739A7E5A5e698340C");
+  const investmentPoolDetails = await investmentPools.getPoolInvestmentDetails("0x94099942864EA81cCF197E9D71ac53310b1468D8");
   console.log("investmentPoolDetails = ",investmentPoolDetails.toString());
   
 
-  const poolInfo2 = await investmentPools.poolList(1);
+  //const poolInfo2 = await investmentPools.poolList(1);
   //console.log("investmentPools.poolInfo2 = ",poolInfo2);
   
   //const poolInfo3 = await investmentPools.poolList(3);

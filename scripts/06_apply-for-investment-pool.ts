@@ -7,10 +7,11 @@ const deployedAddresses = require("../deployment/addresses.json");
 
 async function main() {
 
-  const [owner] = await ethers.getSigners();
+  const [owner, addr1] = await ethers.getSigners();
   const networkName = network.name; 
   console.log("Network = ",networkName);
   
+  const investor = addr1;
   
   const InvestmentPools:InvestmentPools__factory = await ethers.getContractFactory("InvestmentPools");
   const investmentPools:InvestmentPools = await InvestmentPools.attach(deployedAddresses[networkName].investmentPools);
@@ -23,7 +24,7 @@ async function main() {
   console.log("blockBefore = ", blockBefore);
   console.log("timestamp = ", timestampBefore);
 
-  const txt1 = await investmentPools.applyForInvestmentPool("0x703A5f09EccBC1E02E0B1FA739A7E5A5e698340C");
+  const txt1 = await investmentPools.connect(investor).applyForInvestmentPool("0x94099942864EA81cCF197E9D71ac53310b1468D8");
 
   console.log("investmentPools.applyForInvestmentPool Hash: ",txt1.hash);
   const txtReceipt = await txt1.wait();
