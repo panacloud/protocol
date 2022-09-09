@@ -3,11 +3,11 @@ pragma solidity >=0.4.22 <0.9.0;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 import "../PaymentSplitter.sol";
 
 
-contract APIToken is ERC20{
-    
+contract APIToken is ERC20, Ownable {
     
     event PayeeAdded(address account, uint256 shares);
     event PaymentReleased(address to, uint256 amount);
@@ -15,7 +15,7 @@ contract APIToken is ERC20{
     event DelegateChanged(address indexed delegator, address indexed fromDelegate, address indexed toDelegate);
     event DelegateVotesChanged(address indexed delegate, uint previousBalance, uint newBalance);
 
-//variable defining
+    //variable defining
    
     address private _paymentSplitterAddress;
     uint256 public _thresholdForSubscriberMinting;
@@ -25,7 +25,6 @@ contract APIToken is ERC20{
     uint256 public _apiInvestorSharePercentage;
     uint256 public _panaCloudSharePercentage;
     uint256 public _apiProposerSharePercentage;
-    address private owner;
     address private DAIAddress = address(0xaD6D458402F60fD3Bd25163575031ACDce07538D);
 
     
@@ -67,18 +66,19 @@ contract APIToken is ERC20{
         
         // require(payees.length == shares_.length, " payees and shares length mismatch");
         // require(payees.length > 0, " no payees");
-         _initialSupply = initialSupply * 1e18;
-         _developerSharePercentage = developerSharePercentage;
-         _apiInvestorSharePercentage = apiInvestorSharePercentage;
-         _panaCloudSharePercentage = panaCloudSharePercentage;
-         _apiProposerSharePercentage = apiProposerSharePercentage;
-         _paymentSplitterAddress = paymentSplitterAddress;
-         paymentSplitter = PaymentSplitter(paymentSplitterAddress);
+        require(_initialSupply <= maxSupply, "Initial Supply higher than Max Supply");
+        _initialSupply = initialSupply * 1e18;
+        _developerSharePercentage = developerSharePercentage;
+        _apiInvestorSharePercentage = apiInvestorSharePercentage;
+        _panaCloudSharePercentage = panaCloudSharePercentage;
+        _apiProposerSharePercentage = apiProposerSharePercentage;
+        _paymentSplitterAddress = paymentSplitterAddress;
+        paymentSplitter = PaymentSplitter(paymentSplitterAddress);
     
         _maxSupply = maxSupply * 1e18;
         _thresholdForSubscriberMinting=thresholdForSubscriberMinting; // Still needs to see what it will do
-          owner = msg.sender;
         
+        _mint(msg.sender,_initialSupply);
         // for (uint256 i = 0; i < payees.length; i++) {
         //     _addPayee(payees[i], shares_[i]);
         //     _mint(payees[i], shares_[i]);
@@ -90,12 +90,12 @@ contract APIToken is ERC20{
         return totalSupply();
     }
 
-   function mint(address account, uint256 amount) public  {
-        require(amount+totalSupply()>_maxSupply,"total supply reached");
+    function mint(address account, uint256 amount) public onlyOwner{
+        require(amount+totalSupply()<=_maxSupply,"total supply reached");
         _mint(account,amount);
     }
 
-   
+    /*
     function subscribe(uint amount)public {
         bool out = paymentSplitter._subscribe(amount,_thresholdForSubscriberMinting);
         if(out)
@@ -128,14 +128,13 @@ contract APIToken is ERC20{
         return out;
     
     }
-
+    */
     function _afterTokenTransfer(address from, address to, uint256 amount) internal override(ERC20){
         _moveDelegates(delegates[from], delegates[to], amount);
     }
 
 
     // Functions related to voting power delegation -- Start
-
     function delegate(address delegatee) public {
         return _delegate(msg.sender, delegatee);
     }

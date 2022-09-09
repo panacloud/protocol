@@ -4,6 +4,7 @@ pragma solidity >=0.4.22 <0.9.0;
 import "../api-governance/APIToken.sol";
 import "../libs/Global.sol";
 
+// Not being used now, will be removed in future
 contract APITokenFactory {
     
     /*
