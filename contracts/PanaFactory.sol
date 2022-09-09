@@ -7,6 +7,7 @@ import "./utils/DAOFactory.sol";
 import "./utils/APITokenFactory.sol";
 import "./libs/Global.sol";
 import "./api-governance/APIGovernorTimelock.sol";
+import "hardhat/console.sol";
 
 // Need to decide if we really need a factory or not
 // creating a smart contract for factory will cost us
@@ -19,9 +20,11 @@ contract PanaFactory is Ownable  {
     address private daoFactoryAddress;
     DAOFactory private daoFactory;
     APITokenFactory private apiTokenFactory;
+    address private investmentPool;
 
     function initialize(address _panaCoin, address _apiNFT, address _panacloudPlatform, 
-                        address _apiTokenFactoryAddress, address _daoFactoryAddress) public onlyOwner {
+                        address _apiTokenFactoryAddress, address _daoFactoryAddress, 
+                        address _investmentPool) public onlyOwner {
         panaCoinAddress = _panaCoin;
         apiNFTAddress = _apiNFT;
         panacloudPlatformAddress = _panacloudPlatform;
@@ -29,6 +32,7 @@ contract PanaFactory is Ownable  {
         daoFactoryAddress = _daoFactoryAddress;
         daoFactory = DAOFactory(_daoFactoryAddress);
         apiTokenFactory = APITokenFactory(_apiTokenFactoryAddress);
+        investmentPool = _investmentPool;
 
     }
 
@@ -63,19 +67,52 @@ contract PanaFactory is Ownable  {
         
         PanacloudPlatform platfrom = PanacloudPlatform(panacloudPlatformAddress);
 
+        /*
         // Need to fix msg.sender -- as API's owner will be API token factory, which is incorrect
         address apiTokenAddress = apiTokenFactory.createAPIToken(apiTokenConfig, 
                                                             platfrom.panacloudShareInAPI(),
                                                             platfrom.apiIdeaProposerShare(),
                                                             platfrom.paymentSplitterAddress());
-        
+        */
+        console.log("before creating api token");
+        APIToken apiToken = new APIToken(apiTokenConfig.apiTokenName,apiTokenConfig.apiTokenSymbol, apiTokenConfig.maxApiTokenSupply,
+                            apiTokenConfig.initialApiTokenSupply,apiTokenConfig.developerSharePercentage,apiTokenConfig.apiInvestorSharePercentage,
+                            apiTokenConfig.thresholdForSubscriberMinting, platfrom.panacloudShareInAPI(), platfrom.apiIdeaProposerShare(), platfrom.paymentSplitterAddress());
+        console.log("after creating api token = ", address(apiToken));
         APIGovernorTimelock apiTimelock = new APIGovernorTimelock(msg.sender, 2 days);
         // Need to fix msg.sender -- as DAO's owner will be DAO factory, which is incorrect
-        address apiDaoAddress = daoFactory.createAPIDao(address(apiTimelock), apiDAOConfig, apiTokenAddress);
+        address apiDaoAddress = daoFactory.createAPIDao(address(apiTimelock), apiDAOConfig, address(apiToken));
         
-        platfrom.apiDAOCreated(msg.sender, apiDAOConfig.apiId, address(apiTokenAddress), address(apiDaoAddress));
+        platfrom.apiDAOCreated(msg.sender, apiDAOConfig.apiId, address(apiToken), address(apiDaoAddress));
         
     }
+
+    function mintAPITokens(address _apiToken, address to, uint256 amount) public {
+        console.log("mintAPITokens start ", _apiToken);
+        require(msg.sender == investmentPool, "Caller must be Investment Pool");
+        console.log("mintAPITokens after required investment pool compare : pool address ", investmentPool);
+        APIToken apiToken = APIToken(_apiToken);
+        console.log("mintAPITokens after loading api token with address");
+        require(apiToken.owner()==address(this), "Not an owner");
+        console.log("mintAPITokens after required to check api token owner = ",apiToken.owner());
+        apiToken.mint(to, amount);
+        console.log("mintAPITokens after api token mint");
+    }
+
+    // Not being used for now -- will be removed in future if it remain unused
+    function transferAPITokens(address _apiToken, address to, uint256 amount) public {
+        console.log("transferAPITokens start ", _apiToken);
+        require(msg.sender == investmentPool, "Caller must be Investment Pool");
+        console.log("transferAPITokens after required investment pool compare : pool address ", investmentPool);
+        APIToken apiToken = APIToken(_apiToken);
+        console.log("transferAPITokens after loading api token with address");
+        require(apiToken.owner()==address(this), "Not an owner");
+        console.log("transferAPITokens after required to check api token owner = ",apiToken.owner());
+        apiToken.transferFrom(investmentPool, to, amount);
+        console.log("transferAPITokens after api token mint");
+        //apiToken.mint(to, amount);
+    }
+    
 
     /*
     function generateAPIDao(string[] memory apiDetails, string[] memory daoAndTokenDetails,
