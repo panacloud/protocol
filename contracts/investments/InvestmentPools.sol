@@ -3,6 +3,8 @@ pragma solidity >=0.4.22 <0.9.0;
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "../libs/Global.sol";
 import "../governance/PanaCoin.sol";
+import "../PanaFactory.sol";
+import "../api-governance/APIToken.sol";
 import "hardhat/console.sol";
 
 contract InvestmentPools is Ownable  {
@@ -10,6 +12,8 @@ contract InvestmentPools is Ownable  {
     address public _fundingManager;
     PanaCoin public panaCoin;
     uint256 public amountForWhitelisting = 100e10;
+
+    PanaFactory panaFactory;
 
     uint256 public poolCounter;
 
@@ -51,7 +55,6 @@ contract InvestmentPools is Ownable  {
     event InvestedInPool(address apiToken, uint256 investmentAmount, address userAddress);
 
 
-
     modifier onlyOwnerOrManager() {
         require((owner() == _msgSender() || _fundingManager == _msgSender()), "InvestmentPools: caller is not the Owner or Manager");
         _;
@@ -60,8 +63,9 @@ contract InvestmentPools is Ownable  {
     constructor() {
     }
 
-    function initialize(address _panacoin) public onlyOwner {
+    function initialize(address _panacoin, address _panaFactory) public onlyOwner {
         panaCoin = PanaCoin(_panacoin);
+        panaFactory = PanaFactory(_panaFactory);
     }
 
     function fundingManager() public view returns (address) {
@@ -97,6 +101,9 @@ contract InvestmentPools is Ownable  {
         poolInvestmentDetails[apiToken] = Global.PoolInvestmentDetails(poolCounter,apiToken,whitelistingStartDate,whitelistingEndDate, 0, 0, false);
         
         poolList.push(_poolInfo);
+
+        panaFactory.mintAPITokens(apiToken, address(this), tokensToBeIssued);
+
         emit InvestmentPoolCreated(apiDev, apiToken, poolCounter);
         poolCounter++;
     }
@@ -136,6 +143,7 @@ contract InvestmentPools is Ownable  {
 
     function investInPool(address _apiToken, uint256 _investmentAmount) public {
         require(whitelisters[_apiToken][msg.sender], "Not Whitelisted");
+        require(apiInvestmentPool[_apiToken].poolFundingStatus == 1, "Investment not active");
         uint256 allowance = panaCoin.allowance(msg.sender, address(this));
         require(allowance >= _investmentAmount,"Insufficient approval for funds");
         
@@ -144,7 +152,7 @@ contract InvestmentPools is Ownable  {
 
         require(allowance >= _poolInfo.minimumInvestmentRequired,"Insufficient Investment Sent");
 
-        uint256 tokenQuantity = allowance / _poolInfo.tokenPrice;
+        uint256 tokenQuantity = (allowance / _poolInfo.tokenPrice) * 1e18;
         require( (tokenQuantity + _poolInvestmentDetail.tokenIssued)  <= _poolInfo.tokensToBeIssued,"Will exceed the total tokens allowed");
         require( (tokenQuantity + apiInvestors[_apiToken][msg.sender].claimableToken)  <= _poolInfo.tokenPerInvestor,"Per Investor token limit will exceed");
 
@@ -194,8 +202,16 @@ contract InvestmentPools is Ownable  {
         apiInvestmentPool[_apiToken].poolFundingStatus = poolFundingStatus;
     }
 
+    function getPoolFundingStatus (address _apiToken) public view returns(uint256) {
+        return apiInvestmentPool[_apiToken].poolFundingStatus;
+    }
+
     function togglePoolActiveStatus (address _apiToken) public onlyOwnerOrManager {
         apiInvestmentPool[_apiToken].poolActive = !apiInvestmentPool[_apiToken].poolActive;
+    }
+
+    function getPoolActiveStatus (address _apiToken) public view returns(bool) {
+        return apiInvestmentPool[_apiToken].poolActive;
     }
 
     function claimFunds(address _apiToken) public {
@@ -205,6 +221,7 @@ contract InvestmentPools is Ownable  {
         panaCoin.transfer(msg.sender, claimableFunds);
         apiInvestors[_apiToken][msg.sender].investedAmount = 0;
         apiInvestors[_apiToken][msg.sender].amountClaimed = claimableFunds;
+        apiInvestors[_apiToken][msg.sender].claimedBlockNumber = block.number;
     }
 
     function getInvestorDetailForAPIToken(address _apiToken, address investor) public view returns(Global.InvestorDetails memory){
@@ -230,9 +247,18 @@ contract InvestmentPools is Ownable  {
     
     function claimYourAPIToken(address _apiToken) public {
         require(apiInvestmentPool[_apiToken].poolFundingStatus == 2, "Pool status not Successful");
-        require(apiInvestors[_apiToken][msg.sender].apiToken != address(0), "No investment in this pool");
         Global.InvestorDetails storage _investorDetails = apiInvestors[_apiToken][msg.sender];
+        require(_investorDetails.apiToken != address(0), "No investment in this pool");
+        //uint256 claimableFunds = _investorDetails.investedAmount;
+        //require(claimableFunds > 0, "No Funds to claim");
+        require(_investorDetails.claimableToken > 0, "No Tokens to claim");
         
+        APIToken apiToken = APIToken(_apiToken);
+        apiToken.transfer(msg.sender, _investorDetails.claimableToken);
+
+        _investorDetails.claimableToken = 0;
+        _investorDetails.tokensClaimed += _investorDetails.claimableToken;
+        _investorDetails.claimedBlockNumber = block.number;
         // API token transfer to msg.sender
         
         //panaCoin.transfer(msg.sender, _investorDetails.);
