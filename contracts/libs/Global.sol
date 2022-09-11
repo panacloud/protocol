@@ -32,11 +32,12 @@ library Global {
     }
 
     // For Investment Pools
+    // This struct will be used together PoolInvestmentDetails
     struct PoolInfo {
         uint256 poolIndex;
         
         uint256 startDate;
-        uint256 duration;
+        uint256 endDate;
         uint256 tokenPrice;
         uint256 tokensToBeIssued;
         uint256 minimumInvestmentRequired;
@@ -48,13 +49,14 @@ library Global {
         bool poolActive;      
 
         uint256 totalFundApproved;
-        uint256 fundsAvailableFromClaim;
+        uint256 fundsAvailableFromClaim; // Not used for now
         uint256 fundsClaimed;
 
         MilestoneClaim[] milestoneClaims;
 
     }
 
+    // This struct will be used together PoolInfo
     struct PoolInvestmentDetails {
         uint256 poolIndex;
         address apiToken;
@@ -65,7 +67,16 @@ library Global {
         uint256 fundCollected;
         uint256 tokenIssued;
 
-        bool fundingFailed;
+        // 1) Running balance of funds used, in case of pool failure as user claim funds this property 
+        // will track recent available funds and deduction will be done in it
+        // The property is related to 'fundCollected'
+        // 2) In case of success fundsAvailable will used as reference for api developer to withdraw funds
+        uint256 fundsAvailable; 
+
+        // Running balance of api tokens, in case of pool success as user claim api tokens this 
+        // property will track recent available tokens and deduction will be done in it
+        // The property is related to 'tokenIssued'
+        uint256 apiTokenAvailable; 
 
     }
 
