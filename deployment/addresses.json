@@ -1,16 +1,16 @@
 {
     "rinkeby": {
         "daiToken": "0x5592ec0cfb4dbc12d3ab100b257153436a1f0fea",
-        "apiTokenFactory":"0x884D7593fFa0fb06F355B317FA4eE5fF44D8fDbC",
-        "daoFactory":"0x185FdF49ae7a8E45ef245ee83b72e5E780CcBEa3",
-        "paymentSplitter":"0x1F393AD8dA846e2488FF94e3330325B3cc4b6dc7",
-        "panaCoin":"0xD62C1A8f79Dac8998Ddf9dD8856Ea93E36BD98C0",
-        "apiNFT":"0xe8D6be161a6c73068b64090Aa96578Ad363c35F7",
-        "panacloudPlatform":"0x75F94f1c60a2fBdD8AEF8F62B14267db2D541229",
-        "panaFactory":"0x8aD97bC24eAAf59Db2930835252959bb1b932e95",
-        "timelock":"0xB64743670CA5AA4701Df1377F34AA8d7D81Fc445",
-        "platformGoverner":"0x1D97d2512b94331bdD27d3bE7bBA2f5029CCe24F",
-        "investmentPools":"0xFCd122B2881424ef6bB187359B4c4ABDb81E7599",
+        "apiTokenFactory":"0x1C0442db2E2140CbF84dfC0F8618233B2Dc18697",
+        "daoFactory":"0x1380c612ee869178157F089672a274C436Ec5e70",
+        "paymentSplitter":"0x72a48CAAECb23ECb8b3a594Db2F42C555795163e",
+        "panaCoin":"0xdE01FCDDB7241C64baD0846BcE945E094eD3B05E",
+        "apiNFT":"0x1659aB5354C6f93E5197DE107b1Fa2Ba9983C692",
+        "panacloudPlatform":"0xf8dA27A80eb5313732A6A0523B39B58565350155",
+        "investmentPools":"0x767504c9D913Bc1Eb24fDAf8021e346E3160603f",
+        "panaFactory":"0x0642AD0de25E8e357adbf74cff17710DC22100Cf",
+        "timelock":"0xB6fc244e843713693ad589Ca5209BE139C194314",
+        "platformGoverner":"0xBb0908693DdA21bBEeB234A13876D88d610f714d",
         "investmentPoolsManager":"0xCD7F39E2e076Da03a30E5491ebFffA2aa2b73655"
     },
     "localhost": {
@@ -21,10 +21,10 @@
         "panaCoin":"0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9",
         "apiNFT":"0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9",
         "panacloudPlatform":"0x5FC8d32690cc91D4c39d9d3abcBD16989F875707",
-        "panaFactory":"0xa513E6E4b8f2a923D98304ec87F64353C4D5C853",
-        "timelock":"0x8A791620dd6260079BF849Dc5567aDC3F2FdC318",
-        "platformGoverner":"0x610178dA211FEF7D417bC0e6FeD39F05609AD788",
-        "investmentPools":"0xA51c1fc2f0D1a1b8494Ed1FE312d7C3a78Ed91C0",
+        "investmentPools":"0xa513E6E4b8f2a923D98304ec87F64353C4D5C853",
+        "panaFactory":"0x2279B7A0a67DB372996a5FaB50D91eAA73d2eBe6",
+        "timelock":"0x610178dA211FEF7D417bC0e6FeD39F05609AD788",
+        "platformGoverner":"0xB7f8BC63BbcaD18155201308C8f3540b07f84F5e",
         "investmentPoolsManager":"0x0DCd1Bf9A1b36cE34237eEaFef220932846BCD82"
     }
 }
