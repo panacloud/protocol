@@ -33,8 +33,12 @@ contract InvestmentPools is Ownable  {
     // It is related to apiInvestor property
     mapping(address => address[]) userInvestedAPITokenList;
 
-    // Key: API Token, Value: Fund collected -- need to see if its needed 
-    mapping(address => uint256) fundsCollectedForPools;
+    /*
+    // Key: API Token, Value: Fund Available for Pool
+    mapping(address => uint256) fundsAvailableForPools;
+    // Key: API Token, Value: Number of API Tokens in contorl of investment pool
+    mapping(address => uint256) numberOfAPITokensAvailable;
+    */
 
     // Key: API Token, Value: investor address list 
     mapping(address => mapping(address=>bool)) whitelisters;
@@ -45,8 +49,8 @@ contract InvestmentPools is Ownable  {
     // Key: API Token Address, Value: Mapping= Key: User Address, value: true/false
     mapping(address => mapping(address => bool)) allowedList;
 
-    uint256 private totalFundsApproved;
-    uint256 private totalFundsAvailable;
+    uint256 public totalFundsApproved;
+    uint256 public totalFundsAvailable;
 
     event InvestmentPoolCreated(address apiDev, address apiToken, uint256 poolIndex);
     event PaymentMilestoneClaimCreated(address apiToken, uint256 amountToBeReleased);
@@ -77,7 +81,7 @@ contract InvestmentPools is Ownable  {
     }
 
     function createInvestmentPool(address apiDev, address apiToken, uint256 startDate, 
-                                uint256 duration, uint256 tokenPrice, uint256 tokensToBeIssued, 
+                                uint256 endDate, uint256 tokenPrice, uint256 tokensToBeIssued, 
                                 uint256 minimumInvestmentRequired, uint256 tokenPerInvestor,
                                 uint256 whitelistingStartDate, uint256 whitelistingEndDate) 
                                 public  {
@@ -87,7 +91,7 @@ contract InvestmentPools is Ownable  {
         _poolInfo.apiToken = apiToken;
         _poolInfo.apiDev = apiDev;
         _poolInfo.startDate = startDate;
-        _poolInfo.duration = duration;
+        _poolInfo.endDate = endDate;
         _poolInfo.tokenPrice = tokenPrice;
         _poolInfo.tokensToBeIssued = tokensToBeIssued;
         _poolInfo.minimumInvestmentRequired = minimumInvestmentRequired;
@@ -98,19 +102,44 @@ contract InvestmentPools is Ownable  {
 
         userInvestmentPools[apiDev].push(apiToken);
         
-        poolInvestmentDetails[apiToken] = Global.PoolInvestmentDetails(poolCounter,apiToken,whitelistingStartDate,whitelistingEndDate, 0, 0, false);
+        poolInvestmentDetails[apiToken] = Global.PoolInvestmentDetails(poolCounter,apiToken,whitelistingStartDate,whitelistingEndDate, 0, 0, 0, 0);
         
         poolList.push(_poolInfo);
 
         panaFactory.mintAPITokens(apiToken, address(this), tokensToBeIssued);
+        //numberOfAPITokensAvailable[apiToken] = tokensToBeIssued;
 
         emit InvestmentPoolCreated(apiDev, apiToken, poolCounter);
         poolCounter++;
     }
 
     function createPaymentMilestoneClaim(address apiToken, uint256 amountToBeReleased) public onlyOwnerOrManager {
+        require(apiInvestmentPool[apiToken].poolFundingStatus == 2, "Pool Should be successful");
+        require((poolInvestmentDetails[apiToken].fundsAvailable > 0) && (poolInvestmentDetails[apiToken].fundsAvailable >= amountToBeReleased), "Funds not available");
         Global.PoolInfo storage _poolInfo = apiInvestmentPool[apiToken];
+        if(_poolInfo.milestoneClaims.length > 0) {
+            require(_poolInfo.milestoneClaims[_poolInfo.milestoneClaims.length-1].claimedTimestamp > 0, "Previous milestone amount not claimed");
+        }
+        require((amountToBeReleased + _poolInfo.totalFundApproved) <= poolInvestmentDetails[apiToken].fundCollected, "Not enough funds for Claim");
+
         _poolInfo.milestoneClaims.push(Global.MilestoneClaim(amountToBeReleased,block.timestamp, 0));
+        _poolInfo.totalFundApproved += amountToBeReleased;
+    }
+
+    function claimMilestonePayment(address apiToken) public {
+        require(apiInvestmentPool[apiToken].poolFundingStatus == 2, "Pool Should be successful");
+        require(msg.sender == apiInvestmentPool[apiToken].apiDev);
+
+        Global.PoolInfo storage _poolInfo = apiInvestmentPool[apiToken];
+        require(_poolInfo.milestoneClaims.length > 0, "No claims available");
+        Global.MilestoneClaim storage _milestoneClaim = _poolInfo.milestoneClaims[_poolInfo.milestoneClaims.length-1];
+        require(_milestoneClaim.claimedTimestamp == 0, "Already Claimed amount");
+        require(poolInvestmentDetails[apiToken].fundsAvailable >= _milestoneClaim.claimedAmount, "Funds not available");
+
+        _poolInfo.milestoneClaims[_poolInfo.milestoneClaims.length-1].claimedTimestamp = block.timestamp;
+        panaCoin.transfer(msg.sender, _milestoneClaim.claimedAmount);
+        _poolInfo.fundsClaimed +=_milestoneClaim.claimedAmount;
+        poolInvestmentDetails[apiToken].fundsAvailable -= _milestoneClaim.claimedAmount;
     }
 
     function applyForInvestmentPool(address _apiToken) public {
@@ -159,8 +188,9 @@ contract InvestmentPools is Ownable  {
         panaCoin.transferFrom(msg.sender, address(this), _investmentAmount);
         _poolInvestmentDetail.fundCollected += _investmentAmount;
         _poolInvestmentDetail.tokenIssued += tokenQuantity;
-        //poolInvestmentDetails[_apiToken].fundCollected += _investmentAmount;
-        //poolInvestmentDetails[_apiToken].tokenIssued += tokenQuantity;
+        _poolInvestmentDetail.fundsAvailable += _investmentAmount;
+        _poolInvestmentDetail.apiTokenAvailable += tokenQuantity;
+
         Global.InvestorDetails storage _investorDetails = apiInvestors[_apiToken][msg.sender];
         console.log("InvestorDetails.investor = ",_investorDetails.investor);
         console.log("InvestorDetails.apiToken = ",_investorDetails.apiToken);
@@ -179,9 +209,7 @@ contract InvestmentPools is Ownable  {
         totalFundsAvailable += _investmentAmount;
         if(_poolInfo.tokensToBeIssued == _poolInvestmentDetail.tokenIssued) {
             _poolInfo.poolFundingStatus = 2;
-            //apiInvestmentPool[_apiToken].poolFundingStatus = 2;
         }
-
         emit InvestedInPool(_apiToken, _investmentAmount, msg.sender);
     }
 
@@ -217,11 +245,18 @@ contract InvestmentPools is Ownable  {
     function claimFunds(address _apiToken) public {
         require(apiInvestmentPool[_apiToken].poolFundingStatus == 3, "Pool status is not failed");
         uint256 claimableFunds = apiInvestors[_apiToken][msg.sender].investedAmount;
+        uint256 claimableTokens = apiInvestors[_apiToken][msg.sender].claimableToken;
         require(claimableFunds > 0, "No Funds to claim");
+        require(poolInvestmentDetails[_apiToken].fundsAvailable >= claimableFunds, "All funds already refunded");
+        require(totalFundsAvailable >= claimableFunds, "Funds not available");
         panaCoin.transfer(msg.sender, claimableFunds);
         apiInvestors[_apiToken][msg.sender].investedAmount = 0;
+        apiInvestors[_apiToken][msg.sender].claimableToken = 0;
         apiInvestors[_apiToken][msg.sender].amountClaimed = claimableFunds;
         apiInvestors[_apiToken][msg.sender].claimedBlockNumber = block.number;
+        poolInvestmentDetails[_apiToken].fundsAvailable -= claimableFunds;
+        poolInvestmentDetails[_apiToken].apiTokenAvailable -= claimableTokens;
+        totalFundsAvailable-= claimableFunds;
     }
 
     function getInvestorDetailForAPIToken(address _apiToken, address investor) public view returns(Global.InvestorDetails memory){
@@ -249,19 +284,17 @@ contract InvestmentPools is Ownable  {
         require(apiInvestmentPool[_apiToken].poolFundingStatus == 2, "Pool status not Successful");
         Global.InvestorDetails storage _investorDetails = apiInvestors[_apiToken][msg.sender];
         require(_investorDetails.apiToken != address(0), "No investment in this pool");
-        //uint256 claimableFunds = _investorDetails.investedAmount;
-        //require(claimableFunds > 0, "No Funds to claim");
         require(_investorDetails.claimableToken > 0, "No Tokens to claim");
+        require(poolInvestmentDetails[_apiToken].apiTokenAvailable >= _investorDetails.claimableToken, "Not enough tokens available");
         
         APIToken apiToken = APIToken(_apiToken);
         apiToken.transfer(msg.sender, _investorDetails.claimableToken);
 
-        _investorDetails.claimableToken = 0;
-        _investorDetails.tokensClaimed += _investorDetails.claimableToken;
+        _investorDetails.tokensClaimed = _investorDetails.claimableToken;
         _investorDetails.claimedBlockNumber = block.number;
-        // API token transfer to msg.sender
-        
-        //panaCoin.transfer(msg.sender, _investorDetails.);
+        poolInvestmentDetails[_apiToken].apiTokenAvailable -= _investorDetails.claimableToken;
+        _investorDetails.claimableToken = 0;
+        //_investorDetails.investedAmount = 0;
 
     }
 
