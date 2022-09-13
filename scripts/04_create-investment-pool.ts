@@ -26,12 +26,15 @@ async function main() {
   // Production
   let whitelistingStartDate = new Date("1/19/1970");
   let whitelistingEndDate = new Date("2/15/1970");
+  let poolStartDate = new Date("1/15/1970");
+  let poolEndDate = new Date("3/30/1970");
+
   const txt1 = await investmentPools.createInvestmentPool(
           //"0xb11846818Eda46eCa2E0481A4A4AFEBB4CAC18d5","0xa1182eBDc63a68a5355235132aF9AD7555C39c03",
           owner.address,                                      // API developer address
           "0x94099942864EA81cCF197E9D71ac53310b1468D8",       // API Token Address
-          BigNumber.from((new Date()).getTime()),             // Pool Start Date and time
-          BigNumber.from(30).mul(24).mul(60).mul(60),         // Pool Duration
+          BigNumber.from(poolStartDate.getTime()),            // Pool Start Date and time
+          BigNumber.from(poolEndDate.getTime()),              // Pool Duration
           ethers.utils.parseEther("1"),                       // Per API token price in terms of PanaCoin 
           ethers.utils.parseEther("10000"),                   // Tokens to be issued
           ethers.utils.parseEther("10"),                      // Minimum investment required in terms of PanaCon e.g if token price is 50 so 10 tokens * 50 = 500 so 500 panacoin minimum investment
