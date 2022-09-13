@@ -29,7 +29,7 @@ async function main() {
     apiTokenName: "Demo API v1",
     apiTokenSymbol: "DEMO",
     maxApiTokenSupply: BigNumber.from("1000000"), // API Token itself will apply 18 decmial places
-    initialApiTokenSupply: BigNumber.from("100000"),
+    initialApiTokenSupply: BigNumber.from("100000"), // API Token itself will apply 18 decmial places
     developerSharePercentage: BigNumber.from("80"),
     apiInvestorSharePercentage: BigNumber.from("10"),
     thresholdForSubscriberMinting: BigNumber.from("10") // Still needs to see what it will do
